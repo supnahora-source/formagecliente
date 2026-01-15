@@ -158,6 +158,28 @@
     .hero-wrap{aspect-ratio:16/10}
     .right{min-width:unset}
   }
+  /* Ajustes para smartphones (até 600px) */
+  @media (max-width:600px){
+    /* Para dispositivos móveis, não centralizar verticalmente */
+    body{
+      align-items:flex-start;
+      justify-content:flex-start;
+      padding:16px;
+    }
+    /* Fazer a caixa ocupar toda a largura e remover sombras pesadas */
+    .container{
+      grid-template-columns:1fr;
+      gap:12px;
+      padding:12px;
+      border-radius:0;
+      box-shadow:none;
+    }
+    .left{padding:12px;gap:12px;}
+    .right{padding:16px;}
+    /* Ajustar proporção do hero */
+    .hero-wrap{aspect-ratio:16/10;}
+    .thumb{width:48px;height:48px;flex:0 0 48px;}
+  }
   @media (prefers-reduced-motion:reduce){
     .thumb:hover:not(.selected){transform:none;box-shadow:0 12px 36px rgba(12,18,35,0.06);}
     .hero-img,.hero-img.show{transition:none}
@@ -248,9 +270,21 @@
             </div>
           </div>
           <div>
-            <label for="endereco">Endereço (logradouro, número, complemento)</label>
-            <input id="endereco" name="endereco" type="text" required>
-            <div id="errEndereco" class="inline-error">Campo obrigatório</div>
+            <label for="logradouro">Logradouro (rua, bairro, cidade)</label>
+            <input id="logradouro" name="logradouro" type="text" required>
+            <div id="errLogradouro" class="inline-error">Campo obrigatório</div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label for="numero">Casa / Lote</label>
+              <input id="numero" name="numero" type="text" required>
+              <div id="errNumero" class="inline-error">Campo obrigatório</div>
+            </div>
+            <div class="col">
+              <label for="complemento">Complemento</label>
+              <input id="complemento" name="complemento" type="text">
+              <div id="errComplemento" class="inline-error"></div>
+            </div>
           </div>
           <div class="row">
             <div class="col">
@@ -350,7 +384,8 @@ function cepMask(v){const d=onlyDigits(v).slice(0,8);if(d.length>5)return d.repl
 const toastEl=document.getElementById('toast');let toastTimer=null;
 function showToast(msg,ms=3500){if(!msg)return;toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),ms);}
 function showInlineError(el,msg){if(!el)return;el.textContent=msg||'';el.style.display=msg?'block':'none';}
-function setFieldError(inputEl,enable){if(!inputEl)return;if(enable)inputEl.classList.add('field-error');else inputEl.classList.remove('field-error');}
+function setFieldError(inputEl,enable){if(!inputEl)return;if(enable)inputEl.classList.add('field-error');else inputEl.classList.remove('field-error');
+}
 /* ELEMENTOS */
 const thumbs=Array.from(document.querySelectorAll('.thumb'));
 const heroWrap=document.querySelector('.hero-wrap');
@@ -377,7 +412,9 @@ const errNome=document.getElementById('errNome');
 const errCPF=document.getElementById('errCPF');
 const errNascimento=document.getElementById('errNascimento');
 const errCEP=document.getElementById('errCEP');
-const errEndereco=document.getElementById('errEndereco');
+const errLogradouro=document.getElementById('errLogradouro');
+const errNumero=document.getElementById('errNumero');
+const errComplemento=document.getElementById('errComplemento');
 const errVenc=document.getElementById('errVenc');
 const errDia=document.getElementById('errDia');
 const errHorario=document.getElementById('errHorario');
@@ -388,7 +425,9 @@ const nomeField=document.getElementById('nome');
 const cpfField=document.getElementById('cpf');
 const nascimentoField=document.getElementById('nascimento');
 const cepField=document.getElementById('cep');
-const enderecoField=document.getElementById('endereco');
+const logradouroField=document.getElementById('logradouro');
+const numeroField=document.getElementById('numero');
+const complementoField=document.getElementById('complemento');
 const vencField=document.getElementById('vencimento');
 const diaField=document.getElementById('dia_instalacao');
 const horarioField=document.getElementById('horario_instalacao');
@@ -482,7 +521,7 @@ function updatePreview(file){
     reader.readAsDataURL(file);
   }else{
     const div=document.createElement('div');
-    div.innerHTML='<svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" stroke="#fff" stroke-width="1.2"/></svg>';
+    div.innerHTML='<svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a 2 2 0 0 1 2-2z" stroke="#fff" stroke-width="1.2"/></svg>';
     filePreview.prepend(div);
   }
 }
@@ -524,7 +563,7 @@ btnCep.addEventListener('click',async()=>{
     if(data.erro){showInlineError(errCEP,'CEP não encontrado.');setFieldError(cepField,true);cepField.focus();}
     else{
       const endereco=`${data.logradouro||''} ${data.bairro||''} ${data.localidade||''} - ${data.uf||''}`.trim();
-      enderecoField.value=endereco;
+      logradouroField.value=endereco;
       showInlineError(errCEP,'');
       setFieldError(cepField,false);
     }
@@ -543,7 +582,9 @@ function validateAllFields(){
   const cpf=cpfField.value.trim();
   const nascimento=nascimentoField.value;
   const cep=cepField.value.trim();
-  const endereco=enderecoField.value.trim();
+  const logradouro=logradouroField.value.trim();
+  const numero=numeroField.value.trim();
+  const complemento=complementoField.value.trim();
   const venc=vencField.value;
   const dia=diaField.value;
   const horario=horarioField.value;
@@ -557,8 +598,10 @@ function validateAllFields(){
   else{showInlineError(errNascimento,'');setFieldError(nascimentoField,false);}
   if(!cep||onlyDigits(cep).length!==8){showInlineError(errCEP,'CEP inválido');setFieldError(cepField,true);ok=false;}
   else{showInlineError(errCEP,'');setFieldError(cepField,false);}
-  if(!endereco){showInlineError(errEndereco,'Campo obrigatório');setFieldError(enderecoField,true);ok=false;}
-  else{showInlineError(errEndereco,'');setFieldError(enderecoField,false);}
+  if(!logradouro){showInlineError(errLogradouro,'Campo obrigatório');setFieldError(logradouroField,true);ok=false;}
+  else{showInlineError(errLogradouro,'');setFieldError(logradouroField,false);}
+  if(!numero){showInlineError(errNumero,'Campo obrigatório');setFieldError(numeroField,true);ok=false;}
+  else{showInlineError(errNumero,'');setFieldError(numeroField,false);}
   if(!venc){showInlineError(errVenc,'Escolha uma opção');setFieldError(vencField,true);ok=false;}
   else{showInlineError(errVenc,'');setFieldError(vencField,false);}
   if(!dia){showInlineError(errDia,'Escolha uma opção');setFieldError(diaField,true);ok=false;}
@@ -571,7 +614,7 @@ function validateAllFields(){
   return ok;
 }
 function focusFirstInvalid(){
-  const fields=[nomeField,cpfField,nascimentoField,cepField,enderecoField,vencField,diaField,horarioField,emailField];
+  const fields=[nomeField,cpfField,nascimentoField,cepField,logradouroField,numeroField,vencField,diaField,horarioField,emailField];
   for(const f of fields){if(f&&f.classList.contains('field-error')){f.focus();return;}}
 }
 /* RESET */
@@ -579,7 +622,7 @@ resetBtn.addEventListener('click',()=>{
   if(!confirm('Limpar todos os campos?'))return;
   form.reset();
   selectedPlanInput.value='';
-  nomeField.value='';cpfField.value='';nascimentoField.value='';cepField.value='';enderecoField.value='';vencField.value='';diaField.value='';horarioField.value='';emailField.value='';telefoneField.value='';
+  nomeField.value='';cpfField.value='';nascimentoField.value='';cepField.value='';logradouroField.value='';numeroField.value='';complementoField.value='';vencField.value='';diaField.value='';horarioField.value='';emailField.value='';telefoneField.value='';
   clearHero();
   fileInput.value='';
   currentFile=null;
@@ -587,9 +630,10 @@ resetBtn.addEventListener('click',()=>{
   progressBar.style.width='0%';
   progressWrap.style.display='none';
   statusMsg.style.display='none';
-  [errNome,errCPF,errNascimento,errCEP,errEndereco,errVenc,errDia,errHorario,errEmail,errFile].forEach(e=>{if(e){e.textContent='';e.style.display='none';}});
+  [errNome,errCPF,errNascimento,errCEP,errLogradouro,errNumero,errComplemento,errVenc,errDia,errHorario,errEmail,errFile].forEach(e=>{if(e){e.textContent='';e.style.display='none';}});
 });
-/* SUBMISSÃO */
+/* SUBMISSÃO ORIGINAL (FormData via XHR) */
+/* (mantido aqui caso deseje usar FormData, mas sobreposto pelo handler JSON abaixo) */
 form.addEventListener('submit',async(ev)=>{
   ev.preventDefault();
   if(activeXhr){showToast('Há um envio em andamento. Aguarde.');return;}
@@ -600,7 +644,9 @@ form.addEventListener('submit',async(ev)=>{
   fd.append('cpf',onlyDigits(cpfField.value));
   fd.append('nascimento',nascimentoField.value);
   fd.append('cep',onlyDigits(cepField.value));
-  fd.append('endereco',enderecoField.value.trim());
+  fd.append('logradouro', logradouroField.value.trim());
+  fd.append('numero', numeroField.value.trim());
+  fd.append('complemento', complementoField.value.trim());
   fd.append('vencimento',vencField.value);
   fd.append('dia_instalacao',diaField.value);
   fd.append('horario_instalacao',horarioField.value);
@@ -691,8 +737,10 @@ printReceipt.addEventListener('click',()=>{
   const nome=nomeField.value.trim();
   const cpf=cpfField.value.trim();
   const nascimento=nascimentoField.value;
-  const endereco=enderecoField.value.trim();
   const cep=cepField.value.trim();
+  const logradouro=logradouroField.value.trim();
+  const numero=numeroField.value.trim();
+  const complemento=complementoField.value.trim();
   const email=emailField.value.trim();
   const telefone=telefoneField.value.trim();
   const venc=vencField.value;
@@ -700,18 +748,20 @@ printReceipt.addEventListener('click',()=>{
   const horario=horarioField.value;
   const now=new Date().toLocaleString();
   const html=`
-    <html><head><title>Comprovante</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}h1{color:${'#ff6a00'}}.muted{color:#666;font-size:13px}</style></head><body>
+    <html><head><title>Comprovante</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}h1{color:#ff6a00}.muted{color:#666;font-size:13px}</style></head><body>
     <h1>Comprovante de solicitação</h1><div class="muted">Data: ${now}</div><hr/>
     <div><strong>Plano:</strong> ${plan}</div>
     <div><strong>Nome:</strong> ${nome}</div>
     <div><strong>CPF:</strong> ${cpf}</div>
     <div><strong>Data de nascimento:</strong> ${nascimento}</div>
-    <div><strong>Endereço:</strong> ${endereço}</div>
     <div><strong>CEP:</strong> ${cep}</div>
+    <div><strong>Logradouro:</strong> ${logradouro}</div>
+    <div><strong>Número:</strong> ${numero}</div>
+    <div><strong>Complemento:</strong> ${complemento}</div>
     <div><strong>E-mail:</strong> ${email}</div>
     <div><strong>Telefone:</strong> ${telefone}</div>
     <div><strong>Vencimento:</strong> ${venc}</div>
-    <div><strong>Instalação:</strong> ${dia} — ${horário}</div>
+    <div><strong>Instalação:</strong> ${dia} — ${horario}</div>
     <hr/><div class="muted">Obrigado por escolher a Age Fibra.</div>
     <div style="margin-top:12px;font-size:12px;color:#888">© 2026 João Vieira</div>
     </body></html>`;
@@ -722,6 +772,99 @@ printReceipt.addEventListener('click',()=>{
   w.focus();
   setTimeout(()=>w.print(),400);
 });
+
+/* ==== Submissão via JSON para Apps Script ====
+   Esta rotina sobrepõe a submissão original para enviar os dados
+   em formato JSON com arquivos em base64. Ela captura o evento
+   antes da rotina existente, impedindo o envio duplicado. */
+form.addEventListener('submit', async function(ev) {
+  // Intercepta antes de outros manipuladores
+  ev.preventDefault();
+  ev.stopImmediatePropagation();
+  // valida campos usando a função existente
+  if (!validateAllFields()) {
+    focusFirstInvalid();
+    return;
+  }
+  // Construir payload JSON
+  const payload = {
+    plan: currentThumb?.dataset.plan || '',
+    nome: nomeField.value.trim(),
+    cpf: onlyDigits(cpfField.value),
+    nascimento: nascimentoField.value,
+    cep: onlyDigits(cepField.value),
+    logradouro: logradouroField.value.trim(),
+    numero: numeroField.value.trim(),
+    complemento: complementoField.value.trim(),
+    vencimento: vencField.value,
+    dia_instalacao: diaField.value,
+    horario_instalacao: horarioField.value,
+    email: emailField.value.trim(),
+    telefone: telefoneField.value.trim(),
+    files: []
+  };
+  // Preparar arquivo em base64, se houver
+  if (currentFile) {
+    try {
+      const b64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result;
+          const base64 = result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(currentFile);
+      });
+      payload.files.push({ name: currentFile.name, mimeType: currentFile.type, data: b64 });
+    } catch(err) {
+      showToast('Erro ao preparar arquivo para envio.');
+      return;
+    }
+  }
+  // UI de envio
+  submitBtn.disabled = true;
+  submitSpinner.style.display = 'inline';
+  submitText.textContent = 'Enviando...';
+  statusMsg.style.display = 'none';
+  progressWrap.style.display = 'block';
+  progressBar.style.width = '4%';
+  let fallbackTimer = null;
+  let lastProgress = 4;
+  // Fallback progress
+  fallbackTimer = setInterval(() => {
+    lastProgress = Math.min(95, lastProgress + Math.random() * 4);
+    progressBar.style.width = Math.round(lastProgress) + '%';
+  }, 400);
+  try {
+    const res = await fetch(APPS_SCRIPT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    clearInterval(fallbackTimer);
+    progressBar.style.width = '100%';
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.status === 'ok') {
+      openSuccessModal();
+    } else {
+      showToast('Erro no servidor ao processar.');
+      showInlineError(statusMsg, data.message || 'Erro no servidor. Tente novamente.');
+      statusMsg.style.display = 'block';
+    }
+  } catch (err) {
+    clearInterval(fallbackTimer);
+    showToast('Erro de rede ao enviar. Verifique sua conexão.');
+  } finally {
+    submitBtn.disabled = false;
+    submitSpinner.style.display = 'none';
+    submitText.textContent = 'Enviar solicitação';
+    setTimeout(() => {
+      progressWrap.style.display = 'none';
+      progressBar.style.width = '0%';
+    }, 800);
+  }
+}, true);
 </script>
 </body>
 </html>
