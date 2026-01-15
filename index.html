@@ -1,106 +1,169 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Age Fibra — Contratação (final)</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Age Fibra | Contratação</title>
+
+<!-- Favicon: usa o logo da Age na aba (coloque logo-color.png na mesma pasta) -->
+<link rel="icon" type="image/png" href="./logo-color.png">
+
+<!-- Tipografia moderna -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
 <style>
-  :root{
+  :root {
     --age-orange:#ff6a00;
     --age-orange-2:#ff8a2b;
     --muted:#8f95a3;
-    --bg:#f6f7fb;
+    /* Fundo da página em laranja fosco claro */
+    --bg:#fff7ef;
     --card-radius:12px;
     --transition:260ms;
     --max-width:1200px;
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family:'Inter', system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
-    min-height:100vh;background:var(--bg);
-    display:flex;align-items:center;justify-content:center;padding:28px;
-    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    min-height:100vh;
+    background:var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
   }
-
   .shell{width:100%;max-width:var(--max-width)}
   .container{
-    display:grid;grid-template-columns:1fr 420px;gap:18px;
-    background:white;border-radius:14px;padding:20px;box-shadow:0 18px 60px rgba(12,18,35,0.06);
-    position:relative;overflow:visible;
+    display:grid;
+    grid-template-columns:1fr 420px;
+    gap:18px;
+    background:white;
+    border-radius:14px;
+    padding:20px;
+    box-shadow:0 18px 60px rgba(12,18,35,0.06);
+    position:relative;
   }
-
-  /* visual column */
-  .left{padding:18px;display:flex;flex-direction:column;gap:12px}
-  .brand{display:flex;gap:10px;align-items:center}
-  .logoBox{width:64px;height:64px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:transparent}
+  /* Coluna visual */
+  .left{padding:18px;display:flex;flex-direction:column;gap:14px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logoBox{width:64px;height:64px;border-radius:10px;display:flex;align-items:center;justify-content:center}
   .logoBox img{width:56px;height:auto;display:block}
-  .brandText h1{font-size:18px;color:#111}
+  .brandText h1{font-size:20px;color:#111;font-weight:800}
   .brandText p{font-size:13px;color:var(--muted)}
-
-  .headline{font-size:24px;font-weight:800;color:#0b1220}
-  .sub{color:#555;font-size:13px}
-
-  /* HERO */
-  .hero-wrap{width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#fbfcff,#fff);border:1px solid rgba(10,10,20,0.03);display:flex;align-items:center;justify-content:center;position:relative;transition:opacity 320ms,transform 320ms}
-  .hero-wrap.hidden{opacity:0;transform:scale(.995);height:0;padding:0;border:none;overflow:visible;pointer-events:none}
+  .headline{font-size:26px;font-weight:800;color:#0b1220;line-height:1.2}
+  .sub{color:#555;font-size:14px}
+  .tagline{font-size:15px;color:#444;font-weight:500;margin-top:4px}
+  /* Hero oculto inicialmente */
+  .hero-wrap{
+    width:100%;
+    aspect-ratio:16/9;
+    border-radius:12px;
+    overflow:hidden;
+    background:linear-gradient(180deg, rgba(255,205,165,0.36), rgba(255,185,150,0.22));
+    border:1px solid rgba(255,138,43,0.32);
+    backdrop-filter:blur(6px);
+    display:none; /* escondido até escolher plano */
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    transition:background var(--transition), border var(--transition), display 0s var(--transition);
+  }
+  .hero-wrap.has-image{
+    display:flex;
+    background:white;
+    border:1px solid rgba(10,10,20,0.04);
+    backdrop-filter:none;
+  }
   .hero-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:14px}
-  .hero-placeholder{color:#9aa0ae;font-size:15px;text-align:center}
-  .hero-img{max-width:100%;max-height:100%;object-fit:contain;display:block;opacity:0;transform:scale(0.98) translateY(6px);filter:blur(12px) saturate(1);transition:opacity 520ms cubic-bezier(.2,.9,.2,1),transform 520ms,filter 520ms}
+  .hero-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:15px;color:#b65721;text-align:center}
+  .hero-placeholder .placeholder-banner{
+    width:160px;height:auto;opacity:0.85;margin-bottom:6px;
+  }
+  .hero-img{max-width:100%;max-height:100%;object-fit:contain;display:block;opacity:0;transform:scale(0.98) translateY(6px);filter:blur(12px) saturate(1);transition:opacity 520ms cubic-bezier(.2,.9,.2,1),transform 520ms,filter 520ms;will-change:opacity,transform,filter}
   .hero-img.show{opacity:1;transform:scale(1) translateY(0);filter:blur(0) saturate(1.02)}
   .hero-img.glow{box-shadow:0 30px 120px rgba(255,106,0,0.06)}
-
   .thumbs{display:flex;gap:10px;padding-top:12px;overflow-x:auto}
-  .thumb{width:56px;height:56px;border-radius:10px;flex:0 0 56px;cursor:pointer;overflow:hidden;border:1px solid rgba(10,10,20,0.04);display:flex;align-items:center;justify-content:center;background:white;transition:transform var(--transition),box-shadow var(--transition)}
+  .thumb{width:60px;height:60px;border-radius:10px;flex:0 0 60px;cursor:pointer;overflow:hidden;border:1px solid rgba(10,10,20,0.04);display:flex;align-items:center;justify-content:center;background:white;transition:transform var(--transition),box-shadow var(--transition)}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .thumb.selected{transform:translateY(-8px) scale(1.06);box-shadow:0 18px 60px rgba(12,18,35,0.08);border-color:rgba(255,106,0,0.12)}
+  .thumb:hover:not(.selected){transform:translateY(-4px) scale(1.04);box-shadow:0 12px 36px rgba(12,18,35,0.06)}
   .thumb:focus{outline:2px solid rgba(255,106,0,0.12);outline-offset:2px}
-
   .plan-info{display:flex;justify-content:space-between;align-items:center;color:#333;font-weight:700;font-size:15px;margin-top:8px}
-
-  /* form column */
-  .right{background:linear-gradient(180deg,#0d0f14,#0b0d12);color:#fff;padding:20px;border-radius:12px;min-width:300px;display:flex;flex-direction:column;gap:12px}
+  /* Coluna de formulário */
+  .right{background:linear-gradient(180deg,#0d0f14,#0b0d12);color:#fff;padding:22px;border-radius:12px;min-width:300px;display:flex;flex-direction:column;gap:12px}
   .logo-dark{width:120px;height:auto;margin-bottom:6px;display:block}
-  .form-title{font-size:20px;font-weight:700}
+  .form-title{font-size:20px;font-weight:700;letter-spacing:-0.3px}
   .form-sub{font-size:13px;color:rgba(255,255,255,0.85)}
-  form{display:flex;flex-direction:column;gap:10px}
-  label{font-size:13px;color:rgba(255,255,255,0.95)}
-  input[type="text"], input[type="email"], input[type="date"], select, input[type="tel"]{width:100%;padding:10px 12px;border-radius:10px;border:none;outline:none;font-size:14px;background:rgba(255,255,255,0.06);color:white}
+  form{display:flex;flex-direction:column;gap:12px}
+  label{font-size:13px;color:rgba(255,255,255,0.95);margin-bottom:4px}
+  input[type="text"], input[type="email"], input[type="date"], select, input[type="tel"]{
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
+    border:none;
+    outline:none;
+    font-size:14px;
+    background:rgba(255,255,255,0.06);
+    color:white;
+    transition:background var(--transition),border var(--transition);
+  }
+  input[type="text"]:focus, input[type="email"]:focus, input[type="date"]:focus, select:focus, input[type="tel"]:focus{
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.12);
+  }
   .light-select{background:white !important;color:#111 !important}
   .row{display:flex;gap:10px}
   .row .col{flex:1}
-
-  /* file drop */
+  /* Área de upload */
   .file-drop{border:1px dashed rgba(255,255,255,0.08);border-radius:10px;padding:10px;display:flex;gap:10px;align-items:center;cursor:pointer;background:rgba(255,255,255,0.02);transition:background var(--transition),border-color var(--transition)}
   .file-drop.drag{background:linear-gradient(90deg, rgba(255,106,0,0.06), rgba(255,106,0,0.02));border-color:rgba(255,106,0,0.32)}
   .file-drop:focus{outline:2px solid rgba(255,106,0,0.12)}
   .file-preview{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,0.9)}
   .file-preview img{width:56px;height:40px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.06)}
   .note{font-size:12px;color:rgba(255,255,255,0.72)}
-
+  /* Botões */
   .actions{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px}
-  .btn{background:linear-gradient(90deg,var(--age-orange),var(--age-orange-2));color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;box-shadow:0 12px 36px rgba(255,106,0,0.12);transition:transform 160ms}
-  .btn:active{transform:translateY(2px)}
+  .btn{background:linear-gradient(90deg,var(--age-orange),var(--age-orange-2));color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;box-shadow:0 12px 36px rgba(255,106,0,0.12);transition:transform 160ms,box-shadow 160ms;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn:hover:not([disabled]){box-shadow:0 18px 48px rgba(255,106,0,0.18);transform:translateY(-2px)}
+  .btn:active:not([disabled]){transform:translateY(1px)}
   .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.08);color:white;font-weight:600}
+  .btn.secondary:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.12)}
   .btn[disabled]{opacity:0.6;cursor:not-allowed;transform:none}
-
   .progress-wrap{width:100%;height:8px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden;margin-top:8px;display:none}
   .progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--age-orange),var(--age-orange-2));transition:width 260ms linear}
-
-  /* inline errors & toast */
   .inline-error{font-size:12px;color:#ffb4a6;margin-top:6px;display:none}
   .field-error{border:1px solid #ffb4a6 !important}
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:28px;background:#111;color:white;padding:10px 14px;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.3);opacity:0;pointer-events:none;transition:opacity 200ms}
   .toast.show{opacity:1;pointer-events:auto}
-
   .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:9999;opacity:0;pointer-events:none;transition:opacity 200ms}
   .modal.open{opacity:1;pointer-events:auto}
-  .modal-card{width:92%;max-width:520px;background:white;border-radius:12px;padding:18px}
-  .modal-card h2{margin-bottom:8px}
+  .modal-card{width:92%;max-width:520px;background:white;border-radius:12px;padding:20px;box-shadow:0 20px 60px rgba(12,18,35,0.12)}
+  .modal-card h2{margin-bottom:8px;font-size:20px;color:#111}
+  .modal-card p{margin-bottom:16px;color:#333;line-height:1.4}
   .copyright-badge{position:absolute;right:12px;bottom:8px;font-size:12px;color:#bfbfc4;z-index:5;display:flex;align-items:center;gap:6px}
-
-  @media (max-width:1024px){ .container{grid-template-columns:1fr;gap:12px;padding:12px} .hero-wrap{aspect-ratio:4/3} }
-  @media (max-width:520px){ .thumb{width:48px;height:48px} .hero-wrap{aspect-ratio:16/10} .right{min-width:unset} }
+  .copyright-badge svg{width:14px;height:14px}
+  /* Responsivo */
+  @media (max-width:1024px){
+    .container{grid-template-columns:1fr;gap:16px;padding:16px}
+    .hero-wrap{aspect-ratio:4/3}
+    .thumb{width:56px;height:56px;flex:0 0 56px}
+  }
+  @media (max-width:520px){
+    .thumb{width:48px;height:48px;flex:0 0 48px}
+    .hero-wrap{aspect-ratio:16/10}
+    .right{min-width:unset}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .thumb:hover:not(.selected){transform:none;box-shadow:0 12px 36px rgba(12,18,35,0.06);}
+    .hero-img,.hero-img.show{transition:none}
+    .btn{transition:none}
+    .btn:hover{box-shadow:0 12px 36px rgba(255,106,0,0.12);transform:none}
+  }
 </style>
 </head>
 <body>
@@ -108,22 +171,28 @@
     <div class="container" role="application" aria-label="Contratação Age Fibra">
       <div class="left">
         <div class="brand">
-          <div class="logoBox"><img src="./logo-color.png" alt="Age Fibra logo" onerror="this.style.display='none'"></div>
-          <div class="brandText"><h1>Age Fibra — Contratação</h1><p>Selecione um plano e preencha os dados.</p></div>
-        </div>
-
-        <div><div class="headline">Conecte sua casa com tecnologia</div><div class="sub">Clique na miniatura para ver a imagem do plano (suave e sem corte).</div></div>
-
-        <!-- hero inicialmente oculto; aparecerá apenas após seleção -->
-        <div class="hero-wrap hidden" aria-live="polite" aria-atomic="true">
-          <div class="hero-inner">
-            <div id="heroPlaceholder" class="hero-placeholder">Nenhum plano selecionado — clique numa miniatura</div>
-            <img id="heroImg" class="hero-img" src="" alt="" />
+          <div class="logoBox"><img src="./logo-color.png" alt="Age Fibra" onerror="this.style.display='none'"></div>
+          <div class="brandText">
+            <h1>Age Fibra | Contratação</h1>
+            <p>Selecione um plano e preencha os dados.</p>
           </div>
         </div>
-
+        <div>
+          <div class="headline">Conecte sua casa com tecnologia</div>
+          <div class="sub">Clique na miniatura para ver mais informações do plano.</div>
+          <div class="tagline">Mais estabilidade, mais benefícios e uma experiência completa pra você. Age Fibra, a internet escolhida de Brasília.</div>
+        </div>
+        <div class="hero-wrap" aria-live="polite" aria-atomic="true">
+          <div class="hero-inner">
+            <div id="heroPlaceholder" class="hero-placeholder">
+              <img src="./age-banner.png" alt="Age Fibra banner" class="placeholder-banner" onerror="this.style.display='none'">
+              <div>Nenhum plano selecionado</div>
+              <div>Clique numa miniatura para explorar detalhes do plano</div>
+            </div>
+            <img id="heroImg" class="hero-img" src="" alt="">
+          </div>
+        </div>
         <div class="plan-info"><div id="planTitle">—</div><div class="plan-price" id="planPrice">—</div></div>
-
         <div class="thumbs" id="thumbs" aria-label="Planos disponíveis">
           <div class="thumb" data-plan="Age Music" data-price="R$109,90"><img src="./age-music.jpg" alt="Age Music"></div>
           <div class="thumb" data-plan="Age Connect+" data-price="R$99,90"><img src="./age-connect.jpg" alt="Age Connect+"></div>
@@ -132,72 +201,132 @@
           <div class="thumb" data-plan="Age Home Office" data-price="R$189,90"><img src="./age-homeoffice.jpg" alt="Age Home Office"></div>
         </div>
       </div>
-
       <aside class="right">
-        <img src="./logo-white.png" alt="Age Fibra logo" class="logo-dark" onerror="this.style.display='none'">
-
-        <div><div class="form-title">Dados do contratante</div><div class="form-sub">Preencha para iniciarmos o processo</div></div>
-
+        <img src="./logo-white.png" alt="Age Fibra" class="logo-dark" onerror="this.style.display='none'">
+        <div>
+          <div class="form-title">Dados do contratante</div>
+          <div class="form-sub">Preencha para iniciarmos o processo</div>
+        </div>
         <form id="signupForm" autocomplete="off" novalidate>
-          <div><label>Plano selecionado</label><input type="text" id="selectedPlanInput" name="plan" placeholder="Escolha um plano..." readonly required /></div>
-
-          <div class="row">
-            <div class="col"><label>Nome completo</label><input id="nome" name="nome" type="text" required /><div id="errNome" class="inline-error">Campo obrigatório</div></div>
-            <div class="col"><label>CPF</label><input id="cpf" name="cpf" type="text" maxlength="14" placeholder="000.000.000-00" required /><div id="errCPF" class="inline-error">CPF inválido</div></div>
+          <div>
+            <label for="selectedPlanInput">Plano selecionado</label>
+            <input type="text" id="selectedPlanInput" name="plan" placeholder="Escolha um plano..." readonly required>
           </div>
-
           <div class="row">
-            <div class="col"><label>Data de nascimento</label><input id="nascimento" name="nascimento" type="date" required /><div id="errNascimento" class="inline-error">Campo obrigatório</div></div>
-            <div class="col"><label>Telefone (opcional)</label><input id="telefone" name="telefone" type="tel" placeholder="+55 (61) 9xxxx-xxxx" /></div>
-          </div>
-
-          <div><label>CEP</label>
-            <div class="row">
-              <div class="col"><input id="cep" name="cep" type="text" maxlength="9" placeholder="00000-000" required /><div id="errCEP" class="inline-error">CEP inválido / não encontrado</div></div>
-              <div style="width:120px"><button type="button" id="btnCep" class="btn secondary">Buscar CEP</button></div>
+            <div class="col">
+              <label for="nome">Nome completo</label>
+              <input id="nome" name="nome" type="text" required>
+              <div id="errNome" class="inline-error">Campo obrigatório</div>
+            </div>
+            <div class="col">
+              <label for="cpf">CPF</label>
+              <input id="cpf" name="cpf" type="text" maxlength="14" placeholder="000.000.000-00" required>
+              <div id="errCPF" class="inline-error">CPF inválido</div>
             </div>
           </div>
-
-          <div><label>Endereço (logradouro, número, complemento)</label><input id="endereco" name="endereco" type="text" required /><div id="errEndereco" class="inline-error">Campo obrigatório</div></div>
-
           <div class="row">
-            <div class="col"><label>Data de vencimento (fatura)</label><select id="vencimento" name="vencimento" class="light-select" required><option value="">Escolher</option><option>5</option><option>7</option><option>9</option><option>10</option></select><div id="errVenc" class="inline-error">Escolha uma opção</div></div>
-            <div class="col"><label>Dia preferido de instalação</label><select id="dia_instalacao" name="dia_instalacao" class="light-select" required><option value="">Escolher</option><option>Segunda</option><option>Terça</option><option>Quarta</option><option>Quinta</option><option>Sexta</option></select><div id="errDia" class="inline-error">Escolha uma opção</div></div>
+            <div class="col">
+              <label for="nascimento">Data de nascimento</label>
+              <input id="nascimento" name="nascimento" type="date" required>
+              <div id="errNascimento" class="inline-error">Campo obrigatório</div>
+            </div>
+            <div class="col">
+              <label for="telefone">Telefone (opcional)</label>
+              <input id="telefone" name="telefone" type="tel" placeholder="+55 (61) 9xxxx-xxxx">
+            </div>
           </div>
-
-          <div><label>Horário preferido</label><select id="horario_instalacao" name="horario_instalacao" class="light-select" required><option value="">Escolher</option><option>Manhã (08:00 - 12:00)</option><option>Tarde (12:00 - 17:00)</option><option>Noite (18:00 - 21:00)</option></select><div id="errHorario" class="inline-error">Escolha uma opção</div></div>
-
-          <div><label>E-mail</label><input id="email" name="email" type="email" required /><div id="errEmail" class="inline-error">E-mail inválido</div></div>
-
+          <div>
+            <label for="cep">CEP</label>
+            <div class="row">
+              <div class="col">
+                <input id="cep" name="cep" type="text" maxlength="9" placeholder="00000-000" required>
+                <div id="errCEP" class="inline-error">CEP inválido / não encontrado</div>
+              </div>
+              <div style="width:120px">
+                <button type="button" id="btnCep" class="btn secondary">Buscar CEP</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label for="endereco">Endereço (logradouro, número, complemento)</label>
+            <input id="endereco" name="endereco" type="text" required>
+            <div id="errEndereco" class="inline-error">Campo obrigatório</div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label for="vencimento">Data de vencimento (fatura)</label>
+              <select id="vencimento" name="vencimento" class="light-select" required>
+                <option value="">Escolher</option>
+                <option value="5">5</option>
+                <option value="7">7</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+              </select>
+              <div id="errVenc" class="inline-error">Escolha uma opção</div>
+            </div>
+            <div class="col">
+              <label for="dia_instalacao">Dia preferido de instalação</label>
+              <select id="dia_instalacao" name="dia_instalacao" class="light-select" required>
+                <option value="">Escolher</option>
+                <option>Segunda</option>
+                <option>Terça</option>
+                <option>Quarta</option>
+                <option>Quinta</option>
+                <option>Sexta</option>
+              </select>
+              <div id="errDia" class="inline-error">Escolha uma opção</div>
+            </div>
+          </div>
+          <div>
+            <label for="horario_instalacao">Horário preferido</label>
+            <select id="horario_instalacao" name="horario_instalacao" class="light-select" required>
+              <option value="">Escolher</option>
+              <option>Manhã (08:00 - 12:00)</option>
+              <option>Tarde (12:00 - 17:00)</option>
+              <option>Noite (18:00 - 21:00)</option>
+            </select>
+            <div id="errHorario" class="inline-error">Escolha uma opção</div>
+          </div>
+          <div>
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" required>
+            <div id="errEmail" class="inline-error">E-mail inválido</div>
+          </div>
           <div>
             <label>Documento (RG ou CNH) — JPG/PNG/PDF (máx 8MB)</label>
             <div id="fileDrop" class="file-drop" tabindex="0" aria-label="Arraste e solte o documento ou clique">
-              <input id="fileInput" type="file" accept=".jpg,.jpeg,.png,.pdf" style="display:none" />
-              <div class="file-preview" id="filePreview"><div><div id="fileName" style="font-weight:700">Clique ou arraste o arquivo</div><div class="note">Aceitamos JPG, PNG ou PDF — até 8MB</div></div></div>
+              <input id="fileInput" type="file" accept=".jpg,.jpeg,.png,.pdf" style="display:none">
+              <div class="file-preview" id="filePreview">
+                <div>
+                  <div id="fileName" style="font-weight:700">Clique ou arraste o arquivo</div>
+                  <div class="note">Aceitamos JPG, PNG ou PDF — até 8MB</div>
+                </div>
+              </div>
             </div>
             <div id="errFile" class="inline-error">Arquivo inválido</div>
           </div>
-
-          <div class="progress-wrap" id="progressWrap" aria-hidden="true"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
-
+          <div class="progress-wrap" id="progressWrap" aria-hidden="true">
+            <div class="progress-bar" id="progressBar" style="width:0%"></div>
+          </div>
           <div class="actions">
             <div style="display:flex;flex-direction:column;gap:6px">
-              <button id="submitBtn" class="btn" type="submit"><span id="submitSpinner" style="display:none;margin-right:8px">⏳</span><span id="submitText">Enviar solicitação</span></button>
+              <button id="submitBtn" class="btn" type="submit">
+                <span id="submitSpinner" style="display:none">⏳</span>
+                <span id="submitText">Enviar solicitação</span>
+              </button>
               <div id="statusMsg" class="inline-error" style="display:none;color:#ffd4bd"></div>
             </div>
             <button id="resetBtn" class="btn secondary" type="button">Limpar formulário</button>
           </div>
         </form>
       </aside>
-
-      <div class="copyright-badge" aria-hidden="true">© João Vieira</div>
+      <div class="copyright-badge" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M10 1.667A8.333 8.333 0 1 0 18.333 10 8.342 8.342 0 0 0 10 1.667Zm0 15A6.667 6.667 0 1 1 16.667 10 6.674 6.674 0 0 1 10 16.667Zm0-9.167A2.5 2.5 0 0 0 7.5 10a.833.833 0 1 0 1.666 0 .833.833 0 1 1 1.667 0A2.5 2.5 0 1 1 10 12.5a3.336 3.336 0 0 1-3.333-3.333.833.833 0 0 0-1.667 0A5 5 0 1 0 10 15a4.992 4.992 0 0 0 4.992-4.658A4.933 4.933 0 0 0 10 7.5Z"></path></svg>
+        <span>Copyright feito por João Vieira</span>
+      </div>
     </div>
   </div>
-
-  <!-- toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <!-- modal success -->
   <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-card" role="document" aria-labelledby="modalTitle" aria-describedby="modalDesc">
       <h2 id="modalTitle">Solicitação enviada com sucesso 🎉</h2>
@@ -211,346 +340,387 @@
 
 <script>
 /* CONFIG */
-const APPS_SCRIPT_ENDPOINT = "YOUR_APPS_SCRIPT_WEBAPP_URL"; // substituir pela URL do servidor
+const APPS_SCRIPT_ENDPOINT = "YOUR_APPS_SCRIPT_WEBAPP_URL";
 const FILE_MAX_BYTES = 8 * 1024 * 1024;
-
-/* UTIL */
-function onlyDigits(s){ return (s||'').toString().replace(/\D/g,''); }
-function cpfMask(v){
-  const d = onlyDigits(v).slice(0,11);
-  if(d.length>9) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
-  if(d.length>6) return d.replace(/(\d{3})(\d{3})(\d{1,3})/,'$1.$2.$3');
-  if(d.length>3) return d.replace(/(\d{3})(\d{1,3})/,'$1.$2');
-  return d;
-}
-function validateCPF(cpf){
-  cpf = onlyDigits(cpf);
-  if(cpf.length !== 11) return false;
-  if(/^(.)\1+$/.test(cpf)) return false;
-  const nums = cpf.split('').map(n=>+n);
-  let sum=0;
-  for(let i=0;i<9;i++) sum += nums[i]*(10-i);
-  let rev=11-(sum%11); if(rev>=10) rev=0; if(rev!==nums[9]) return false;
-  sum=0; for(let i=0;i<10;i++) sum += nums[i]*(11-i);
-  rev=11-(sum%11); if(rev>=10) rev=0; return rev===nums[10];
-}
-function cepMask(v){ const d = onlyDigits(v).slice(0,8); if(d.length>5) return d.replace(/(\d{5})(\d{1,3})/,'$1-$2'); return d; }
-
-/* UI helpers */
-const toastEl = document.getElementById('toast');
-let toastTimer = null;
-function showToast(msg, ms=3500){ if(!msg) return; toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(()=> toastEl.classList.remove('show'), ms); }
-function showInlineError(el, msg){ if(!el) return; el.textContent = msg || ''; el.style.display = msg ? 'block' : 'none'; }
-function setFieldError(inputEl, enable){ if(!inputEl) return; if(enable) inputEl.classList.add('field-error'); else inputEl.classList.remove('field-error'); }
-
-/* Elements */
-const thumbs = Array.from(document.querySelectorAll('.thumb'));
-const heroImg = document.getElementById('heroImg');
-const heroPlaceholder = document.getElementById('heroPlaceholder');
-const heroWrap = document.querySelector('.hero-wrap');
-const planTitle = document.getElementById('planTitle');
-const planPrice = document.getElementById('planPrice');
-const selectedPlanInput = document.getElementById('selectedPlanInput');
-
-const fileDrop = document.getElementById('fileDrop');
-const fileInput = document.getElementById('fileInput');
-const filePreview = document.getElementById('filePreview');
-const fileNameEl = document.getElementById('fileName');
-
-const progressWrap = document.getElementById('progressWrap');
-const progressBar = document.getElementById('progressBar');
-
-const form = document.getElementById('signupForm');
-const submitBtn = document.getElementById('submitBtn');
-const submitSpinner = document.getElementById('submitSpinner');
-const submitText = document.getElementById('submitText');
-const resetBtn = document.getElementById('resetBtn');
-
-const modal = document.getElementById('modal');
-const closeModal = document.getElementById('closeModal');
-const printReceipt = document.getElementById('printReceipt');
-
-/* inline errors */
-const errNome = document.getElementById('errNome');
-const errCPF = document.getElementById('errCPF');
-const errNascimento = document.getElementById('errNascimento');
-const errCEP = document.getElementById('errCEP');
-const errEndereco = document.getElementById('errEndereco');
-const errVenc = document.getElementById('errVenc');
-const errDia = document.getElementById('errDia');
-const errHorario = document.getElementById('errHorario');
-const errEmail = document.getElementById('errEmail');
-const errFile = document.getElementById('errFile');
-const statusMsg = document.getElementById('statusMsg');
-
-/* fields */
-const nomeField = document.getElementById('nome');
-const cpfField = document.getElementById('cpf');
-const nascimentoField = document.getElementById('nascimento');
-const cepField = document.getElementById('cep');
-const enderecoField = document.getElementById('endereco');
-const vencField = document.getElementById('vencimento');
-const diaField = document.getElementById('dia_instalacao');
-const horarioField = document.getElementById('horario_instalacao');
-const emailField = document.getElementById('email');
-const telefoneField = document.getElementById('telefone');
-
-let currentThumb = null;
-let currentFile = null;
-let activeXhr = null;
-let lastFocusedBeforeModal = null;
-
-/* Thumbnail / Hero */
+/* UTILIDADES */
+function onlyDigits(s){return(s||'').toString().replace(/\\D/g,'');}
+function cpfMask(v){const d=onlyDigits(v).slice(0,11);if(d.length>9)return d.replace(/(\\d{3})(\\d{3})(\\d{3})(\\d{2})/,'$1.$2.$3-$4');if(d.length>6)return d.replace(/(\\d{3})(\\d{3})(\\d{1,3})/,'$1.$2.$3');if(d.length>3)return d.replace(/(\\d{3})(\\d{1,3})/,'$1.$2');return d;}
+function validateCPF(cpf){cpf=onlyDigits(cpf);if(cpf.length!==11)return false;if(/^(.)\\1+$/.test(cpf))return false;const nums=cpf.split('').map(n=>+n);let sum=0;for(let i=0;i<9;i++)sum+=nums[i]*(10-i);let rev=11-(sum%11);if(rev>=10)rev=0;if(rev!==nums[9])return false;sum=0;for(let i=0;i<10;i++)sum+=nums[i]*(11-i);rev=11-(sum%11);if(rev>=10)rev=0;return rev===nums[10];}
+function cepMask(v){const d=onlyDigits(v).slice(0,8);if(d.length>5)return d.replace(/(\\d{5})(\\d{1,3})/,'$1-$2');return d;}
+const toastEl=document.getElementById('toast');let toastTimer=null;
+function showToast(msg,ms=3500){if(!msg)return;toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),ms);}
+function showInlineError(el,msg){if(!el)return;el.textContent=msg||'';el.style.display=msg?'block':'none';}
+function setFieldError(inputEl,enable){if(!inputEl)return;if(enable)inputEl.classList.add('field-error');else inputEl.classList.remove('field-error');}
+/* ELEMENTOS */
+const thumbs=Array.from(document.querySelectorAll('.thumb'));
+const heroWrap=document.querySelector('.hero-wrap');
+const heroImg=document.getElementById('heroImg');
+const heroPlaceholder=document.getElementById('heroPlaceholder');
+const planTitle=document.getElementById('planTitle');
+const planPrice=document.getElementById('planPrice');
+const selectedPlanInput=document.getElementById('selectedPlanInput');
+const fileDrop=document.getElementById('fileDrop');
+const fileInput=document.getElementById('fileInput');
+const filePreview=document.getElementById('filePreview');
+const fileNameEl=document.getElementById('fileName');
+const progressWrap=document.getElementById('progressWrap');
+const progressBar=document.getElementById('progressBar');
+const form=document.getElementById('signupForm');
+const submitBtn=document.getElementById('submitBtn');
+const submitSpinner=document.getElementById('submitSpinner');
+const submitText=document.getElementById('submitText');
+const resetBtn=document.getElementById('resetBtn');
+const modal=document.getElementById('modal');
+const closeModal=document.getElementById('closeModal');
+const printReceipt=document.getElementById('printReceipt');
+const errNome=document.getElementById('errNome');
+const errCPF=document.getElementById('errCPF');
+const errNascimento=document.getElementById('errNascimento');
+const errCEP=document.getElementById('errCEP');
+const errEndereco=document.getElementById('errEndereco');
+const errVenc=document.getElementById('errVenc');
+const errDia=document.getElementById('errDia');
+const errHorario=document.getElementById('errHorario');
+const errEmail=document.getElementById('errEmail');
+const errFile=document.getElementById('errFile');
+const statusMsg=document.getElementById('statusMsg');
+const nomeField=document.getElementById('nome');
+const cpfField=document.getElementById('cpf');
+const nascimentoField=document.getElementById('nascimento');
+const cepField=document.getElementById('cep');
+const enderecoField=document.getElementById('endereco');
+const vencField=document.getElementById('vencimento');
+const diaField=document.getElementById('dia_instalacao');
+const horarioField=document.getElementById('horario_instalacao');
+const emailField=document.getElementById('email');
+const telefoneField=document.getElementById('telefone');
+let currentThumb=null;
+let currentFile=null;
+let activeXhr=null;
+/* HERO / THUMB */
 function clearHero(){
   heroImg.classList.remove('show','glow');
-  heroImg.src = '';
-  heroImg.alt = '';
-  heroPlaceholder.style.display = 'block';
-  planTitle.textContent = '—'; planPrice.textContent = '—';
-  selectedPlanInput.value = '';
+  heroImg.src='';
+  heroImg.alt='';
+  heroPlaceholder.style.display='block';
+  heroWrap.classList.remove('has-image'); /* esconde o hero */
+  planTitle.textContent='—';
+  planPrice.textContent='—';
+  selectedPlanInput.value='';
   thumbs.forEach(t=>t.classList.remove('selected'));
-  currentThumb = null;
-  heroWrap.classList.add('hidden');
-  heroWrap.setAttribute('aria-hidden','true');
+  currentThumb=null;
 }
-
-function showHeroFromThumb(t){
-  if(!t) return;
-  // mark selected
+async function showHeroFromThumb(t){
+  if(!t)return;
   thumbs.forEach(x=>x.classList.remove('selected'));
   t.classList.add('selected');
-  currentThumb = t;
-  const title = t.dataset.plan || '—';
-  const price = t.dataset.price || '—';
-  planTitle.textContent = title; planPrice.textContent = price;
-  selectedPlanInput.value = `${title} — ${price}`;
-
-  heroPlaceholder.style.display = 'none';
+  currentThumb=t;
+  const title=t.dataset.plan||'—';
+  const price=t.dataset.price||'—';
+  planTitle.textContent=title;
+  planPrice.textContent=price;
+  selectedPlanInput.value=`${title} — ${price}`;
+  heroPlaceholder.style.display='none';
+  heroWrap.classList.add('has-image');
   heroImg.classList.remove('show','glow');
-
-  const src = t.querySelector('img')?.src || '';
-  if(!src){
-    clearHero();
-    heroPlaceholder.textContent = 'Imagem não encontrada';
-    return;
-  }
-
-  // ensure hero visible
-  heroWrap.classList.remove('hidden');
-  heroWrap.removeAttribute('aria-hidden');
-
-  const pre = new Image();
-  pre.src = src;
-  pre.onload = ()=> {
-    heroImg.src = src; heroImg.alt = title;
-    if(heroImg.decode) heroImg.decode().then(()=> { heroImg.classList.add('show'); setTimeout(()=>heroImg.classList.add('glow'),280); setTimeout(()=>heroImg.classList.remove('glow'),1500); }).catch(()=> { heroImg.classList.add('show'); });
-    else { heroImg.classList.add('show'); setTimeout(()=>heroImg.classList.add('glow'),280); setTimeout(()=>heroImg.classList.remove('glow'),1500); }
+  const src=t.querySelector('img')?.src||'';
+  if(!src){clearHero();heroPlaceholder.textContent='Imagem não encontrada';return;}
+  const pre=new Image();
+  pre.src=src;
+  pre.onload=()=>{
+    heroImg.src=src;
+    heroImg.alt=title;
+    if(heroImg.decode){
+      heroImg.decode().then(()=>{
+        heroImg.classList.add('show');
+        setTimeout(()=>heroImg.classList.add('glow'),280);
+        setTimeout(()=>heroImg.classList.remove('glow'),1500);
+      }).catch(()=>{heroImg.classList.add('show');});
+    }else{
+      heroImg.classList.add('show');
+      setTimeout(()=>heroImg.classList.add('glow'),280);
+      setTimeout(()=>heroImg.classList.remove('glow'),1500);
+    }
   };
-  pre.onerror = ()=> { heroPlaceholder.style.display='block'; heroPlaceholder.textContent='Erro ao carregar imagem'; heroImg.src=''; heroImg.classList.remove('show'); };
+  pre.onerror=()=>{
+    heroPlaceholder.style.display='block';
+    heroPlaceholder.textContent='Erro ao carregar imagem';
+    heroImg.src='';
+    heroImg.classList.remove('show');
+  };
 }
-
 thumbs.forEach(t=>{
   t.setAttribute('tabindex','0');
-  t.addEventListener('click', ()=> showHeroFromThumb(t));
-  t.addEventListener('keypress', e=> { if(e.key === 'Enter') showHeroFromThumb(t); });
+  t.addEventListener('click',()=>showHeroFromThumb(t));
+  t.addEventListener('keypress',e=>{if(e.key==='Enter')showHeroFromThumb(t);});
 });
-
 clearHero();
-
-/* Drag & Drop + File validation */
+/* UPLOAD */
 function isValidFileType(file){
-  if(!file) return false;
-  const allowedMimes = ['image/jpeg','image/png','application/pdf'];
-  const allowedExts = ['.jpg','.jpeg','.png','.pdf'];
-  const lowerName = (file.name || '').toLowerCase();
-  const hasExt = allowedExts.some(ext => lowerName.endsWith(ext));
-  const hasMime = allowedMimes.includes(file.type);
-  return hasMime && hasExt;
+  if(!file)return false;
+  const allowedMimes=['image/jpeg','image/png','application/pdf'];
+  const allowedExts=['.jpg','.jpeg','.png','.pdf'];
+  const lowerName=(file.name||'').toLowerCase();
+  const hasExt=allowedExts.some(ext=>lowerName.endsWith(ext));
+  const hasMime=allowedMimes.includes(file.type);
+  return hasMime&&hasExt;
 }
-
-fileDrop.addEventListener('click', ()=> fileInput.click());
-fileInput.addEventListener('change', handleFileSelect);
-['dragenter','dragover'].forEach(evt => fileDrop.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); fileDrop.classList.add('drag'); }));
-['dragleave','drop'].forEach(evt => fileDrop.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); fileDrop.classList.remove('drag'); }));
-fileDrop.addEventListener('drop', e=>{
-  if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
-    fileInput.files = e.dataTransfer.files;
-    handleFileSelect();
-  }
-});
-
 function updatePreview(file){
   filePreview.querySelector('img')?.remove();
   filePreview.querySelector('svg')?.remove();
-  fileNameEl.textContent = 'Clique ou arraste o arquivo';
-  if(!file) return;
-  fileNameEl.textContent = file.name;
+  fileNameEl.textContent='Clique ou arraste o arquivo';
+  if(!file)return;
+  fileNameEl.textContent=file.name;
   if(file.type.startsWith('image/')){
-    const reader = new FileReader();
-    reader.onload = ()=> {
-      const img = document.createElement('img'); img.src = reader.result; img.alt='preview'; filePreview.prepend(img);
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=document.createElement('img');
+      img.src=reader.result;
+      img.alt='preview';
+      filePreview.prepend(img);
     };
     reader.readAsDataURL(file);
-  } else {
-    const svg = document.createElement('div');
-    svg.innerHTML = '<svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M6 2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" stroke="#000" stroke-width="1.2"/></svg>';
-    filePreview.prepend(svg);
+  }else{
+    const div=document.createElement('div');
+    div.innerHTML='<svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" stroke="#fff" stroke-width="1.2"/></svg>';
+    filePreview.prepend(div);
   }
 }
-
 function handleFileSelect(){
-  const f = fileInput.files[0];
-  currentFile = null;
-  showInlineError(errFile,''); setFieldError(fileInput,false);
-  if(!f){ updatePreview(null); return; }
-  if(f.size > FILE_MAX_BYTES){ showInlineError(errFile,'Arquivo maior que 8MB. Escolha outro arquivo.'); fileInput.value = ''; currentFile = null; updatePreview(null); return; }
-  if(!isValidFileType(f)){ showInlineError(errFile,'Formato inválido. Só JPG, PNG ou PDF.'); fileInput.value = ''; currentFile = null; updatePreview(null); return; }
-  currentFile = f; updatePreview(f);
+  const f=fileInput.files[0];
+  currentFile=null;
+  showInlineError(errFile,'');
+  setFieldError(fileInput,false);
+  if(!f){updatePreview(null);return;}
+  if(f.size>FILE_MAX_BYTES){showInlineError(errFile,'Arquivo maior que 8MB. Escolha outro arquivo.');fileInput.value='';currentFile=null;updatePreview(null);return;}
+  if(!isValidFileType(f)){showInlineError(errFile,'Formato inválido. Só JPG, PNG ou PDF.');fileInput.value='';currentFile=null;updatePreview(null);return;}
+  currentFile=f;
+  updatePreview(f);
 }
-fileDrop.addEventListener('keypress', e=> { if(e.key === 'Enter') fileInput.click(); });
-
-/* CEP lookup */
-const btnCep = document.getElementById('btnCep');
-btnCep.addEventListener('click', async ()=>{
-  const cepRaw = onlyDigits(cepField.value);
-  showInlineError(errCEP,''); setFieldError(cepField,false);
-  if(cepRaw.length !== 8){ showInlineError(errCEP,'CEP inválido. Informe 8 dígitos.'); setFieldError(cepField,true); cepField.focus(); return; }
-  btnCep.disabled = true; btnCep.textContent = 'Buscando...';
-  try{
-    const resp = await fetch(`https://viacep.com.br/ws/${cepRaw}/json/`);
-    if(!resp.ok) throw new Error('Erro rede');
-    const data = await resp.json();
-    if(data.erro){ showInlineError(errCEP,'CEP não encontrado.'); setFieldError(cepField,true); cepField.focus(); }
-    else {
-      const endereco = `${data.logradouro || ''} ${data.bairro || ''} ${data.localidade || ''} - ${data.uf || ''}`.trim();
-      enderecoField.value = endereco; showInlineError(errCEP,''); setFieldError(cepField,false);
-    }
-  } catch(err){ showInlineError(errCEP,'Erro ao buscar CEP. Tente novamente.'); }
-  finally{ btnCep.disabled = false; btnCep.textContent = 'Buscar CEP'; }
+fileDrop.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',handleFileSelect);
+['dragenter','dragover'].forEach(evt=>fileDrop.addEventListener(evt,e=>{e.preventDefault();e.stopPropagation();fileDrop.classList.add('drag');}));
+['dragleave','drop'].forEach(evt=>fileDrop.addEventListener(evt,e=>{e.preventDefault();e.stopPropagation();fileDrop.classList.remove('drag');}));
+fileDrop.addEventListener('drop',e=>{
+  if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length){
+    fileInput.files=e.dataTransfer.files;
+    handleFileSelect();
+  }
 });
-
-/* masks */
-cpfField.addEventListener('input', e=> e.target.value = cpfMask(e.target.value));
-cepField.addEventListener('input', e=> e.target.value = cepMask(e.target.value));
-
-/* Validation */
+fileDrop.addEventListener('keypress',e=>{if(e.key==='Enter')fileInput.click();});
+/* BUSCA CEP */
+const btnCep=document.getElementById('btnCep');
+btnCep.addEventListener('click',async()=>{
+  const cepRaw=onlyDigits(cepField.value);
+  showInlineError(errCEP,'');
+  setFieldError(cepField,false);
+  if(cepRaw.length!==8){showInlineError(errCEP,'CEP inválido. Informe 8 dígitos.');setFieldError(cepField,true);cepField.focus();return;}
+  btnCep.disabled=true;
+  btnCep.textContent='Buscando...';
+  try{
+    const resp=await fetch(`https://viacep.com.br/ws/${cepRaw}/json/`);
+    if(!resp.ok)throw new Error('Erro rede');
+    const data=await resp.json();
+    if(data.erro){showInlineError(errCEP,'CEP não encontrado.');setFieldError(cepField,true);cepField.focus();}
+    else{
+      const endereco=`${data.logradouro||''} ${data.bairro||''} ${data.localidade||''} - ${data.uf||''}`.trim();
+      enderecoField.value=endereco;
+      showInlineError(errCEP,'');
+      setFieldError(cepField,false);
+    }
+  }catch(err){
+    showInlineError(errCEP,'Erro ao buscar CEP. Tente novamente.');
+  }finally{
+    btnCep.disabled=false;
+    btnCep.textContent='Buscar CEP';
+  }
+});
+cpfField.addEventListener('input',e=>e.target.value=cpfMask(e.target.value));
+cepField.addEventListener('input',e=>e.target.value=cepMask(e.target.value));
+/* VALIDAÇÃO */
 function validateAllFields(){
-  const nome = nomeField.value.trim(); const cpf = cpfField.value.trim(); const nascimento = nascimentoField.value;
-  const cep = cepField.value.trim(); const endereco = enderecoField.value.trim(); const venc = vencField.value;
-  const dia = diaField.value; const horario = horarioField.value; const email = emailField.value.trim();
-
-  let ok = true;
-
-  if(!nome){ showInlineError(errNome,'Campo obrigatório'); setFieldError(nomeField,true); ok=false; } else { showInlineError(errNome,''); setFieldError(nomeField,false); }
-  if(!cpf || !validateCPF(cpf)){ showInlineError(errCPF,'CPF inválido'); setFieldError(cpfField,true); ok=false; } else { showInlineError(errCPF,''); setFieldError(cpfField,false); }
-  if(!nascimento){ showInlineError(errNascimento,'Campo obrigatório'); setFieldError(nascimentoField,true); ok=false; } else { showInlineError(errNascimento,''); setFieldError(nascimentoField,false); }
-  if(!cep || onlyDigits(cep).length !== 8){ showInlineError(errCEP,'CEP inválido'); setFieldError(cepField,true); ok=false; } else { showInlineError(errCEP,''); setFieldError(cepField,false); }
-  if(!endereco){ showInlineError(errEndereco,'Campo obrigatório'); setFieldError(enderecoField,true); ok=false; } else { showInlineError(errEndereco,''); setFieldError(enderecoField,false); }
-
-  if(!venc){ showInlineError(errVenc,'Escolha uma opção'); setFieldError(vencField,true); ok=false; } else { showInlineError(errVenc,''); setFieldError(vencField,false); }
-  if(!dia){ showInlineError(errDia,'Escolha uma opção'); setFieldError(diaField,true); ok=false; } else { showInlineError(errDia,''); setFieldError(diaField,false); }
-  if(!horario){ showInlineError(errHorario,'Escolha uma opção'); setFieldError(horarioField,true); ok=false; } else { showInlineError(errHorario,''); setFieldError(horarioField,false); }
-
-  if(!email || !/^\S+@\S+\.\S+$/.test(email)){ showInlineError(errEmail,'E-mail inválido'); setFieldError(emailField,true); ok=false; } else { showInlineError(errEmail,''); setFieldError(emailField,false); }
-
-  if(!currentThumb){ showToast('Selecione um plano antes de enviar'); ok=false; }
+  const nome=nomeField.value.trim();
+  const cpf=cpfField.value.trim();
+  const nascimento=nascimentoField.value;
+  const cep=cepField.value.trim();
+  const endereco=enderecoField.value.trim();
+  const venc=vencField.value;
+  const dia=diaField.value;
+  const horario=horarioField.value;
+  const email=emailField.value.trim();
+  let ok=true;
+  if(!nome){showInlineError(errNome,'Campo obrigatório');setFieldError(nomeField,true);ok=false;}
+  else{showInlineError(errNome,'');setFieldError(nomeField,false);}
+  if(!cpf||!validateCPF(cpf)){showInlineError(errCPF,'CPF inválido');setFieldError(cpfField,true);ok=false;}
+  else{showInlineError(errCPF,'');setFieldError(cpfField,false);}
+  if(!nascimento){showInlineError(errNascimento,'Campo obrigatório');setFieldError(nascimentoField,true);ok=false;}
+  else{showInlineError(errNascimento,'');setFieldError(nascimentoField,false);}
+  if(!cep||onlyDigits(cep).length!==8){showInlineError(errCEP,'CEP inválido');setFieldError(cepField,true);ok=false;}
+  else{showInlineError(errCEP,'');setFieldError(cepField,false);}
+  if(!endereco){showInlineError(errEndereco,'Campo obrigatório');setFieldError(enderecoField,true);ok=false;}
+  else{showInlineError(errEndereco,'');setFieldError(enderecoField,false);}
+  if(!venc){showInlineError(errVenc,'Escolha uma opção');setFieldError(vencField,true);ok=false;}
+  else{showInlineError(errVenc,'');setFieldError(vencField,false);}
+  if(!dia){showInlineError(errDia,'Escolha uma opção');setFieldError(diaField,true);ok=false;}
+  else{showInlineError(errDia,'');setFieldError(diaField,false);}
+  if(!horario){showInlineError(errHorario,'Escolha uma opção');setFieldError(horarioField,true);ok=false;}
+  else{showInlineError(errHorario,'');setFieldError(horarioField,false);}
+  if(!email||!/^\\S+@\\S+\\.\\S+$/.test(email)){showInlineError(errEmail,'E-mail inválido');setFieldError(emailField,true);ok=false;}
+  else{showInlineError(errEmail,'');setFieldError(emailField,false);}
+  if(!currentThumb){showToast('Selecione um plano antes de enviar');ok=false;}
   return ok;
 }
-
 function focusFirstInvalid(){
-  const fields = [nomeField, cpfField, nascimentoField, cepField, enderecoField, vencField, diaField, horarioField, emailField];
-  for(const f of fields){ if(f && f.classList.contains('field-error')){ f.focus(); return; } }
+  const fields=[nomeField,cpfField,nascimentoField,cepField,enderecoField,vencField,diaField,horarioField,emailField];
+  for(const f of fields){if(f&&f.classList.contains('field-error')){f.focus();return;}}
 }
-
-/* Reset */
-resetBtn.addEventListener('click', ()=>{
-  if(!confirm('Limpar todos os campos?')) return;
-  if(activeXhr){ if(!confirm('Há um envio em andamento. Deseja cancelar e limpar?')) return; activeXhr.abort(); }
+/* RESET */
+resetBtn.addEventListener('click',()=>{
+  if(!confirm('Limpar todos os campos?'))return;
   form.reset();
-  // clear programmatic values
-  selectedPlanInput.value = '';
-  nomeField.value = ''; cpfField.value = ''; nascimentoField.value=''; cepField.value=''; enderecoField.value=''; vencField.value=''; diaField.value=''; horarioField.value=''; emailField.value=''; telefoneField.value='';
+  selectedPlanInput.value='';
+  nomeField.value='';cpfField.value='';nascimentoField.value='';cepField.value='';enderecoField.value='';vencField.value='';diaField.value='';horarioField.value='';emailField.value='';telefoneField.value='';
   clearHero();
-  fileInput.value = ''; currentFile = null; updatePreview(null);
-  progressBar.style.width = '0%'; progressWrap.style.display = 'none'; statusMsg.style.display = 'none';
-  [errNome,errCPF,errNascimento,errCEP,errEndereco,errVenc,errDia,errHorario,errEmail,errFile].forEach(e=>{ if(e){ e.textContent=''; e.style.display='none'; }});
+  fileInput.value='';
+  currentFile=null;
+  updatePreview(null);
+  progressBar.style.width='0%';
+  progressWrap.style.display='none';
+  statusMsg.style.display='none';
+  [errNome,errCPF,errNascimento,errCEP,errEndereco,errVenc,errDia,errHorario,errEmail,errFile].forEach(e=>{if(e){e.textContent='';e.style.display='none';}});
 });
-
-/* Submit */
-form.addEventListener('submit', async (ev)=>{
+/* SUBMISSÃO */
+form.addEventListener('submit',async(ev)=>{
   ev.preventDefault();
-  if(!validateAllFields()){ focusFirstInvalid(); return; }
-
-  if(activeXhr){ if(!confirm('Existe um envio em andamento. Deseja cancelar e iniciar outro?')) return; activeXhr.abort(); }
-
-  const fd = new FormData();
-  fd.append('plan', currentThumb?.dataset.plan || '');
-  fd.append('nome', nomeField.value.trim());
-  fd.append('cpf', onlyDigits(cpfField.value));
-  fd.append('nascimento', nascimentoField.value);
-  fd.append('cep', onlyDigits(cepField.value));
-  fd.append('endereco', enderecoField.value.trim());
-  fd.append('vencimento', vencField.value);
-  fd.append('dia_instalacao', diaField.value);
-  fd.append('horario_instalacao', horarioField.value);
-  fd.append('email', emailField.value.trim());
-  fd.append('telefone', telefoneField.value.trim());
-  if(currentFile) fd.append('documento', currentFile, currentFile.name);
-
-  if(!APPS_SCRIPT_ENDPOINT || APPS_SCRIPT_ENDPOINT === "YOUR_APPS_SCRIPT_WEBAPP_URL"){ showToast('Endpoint do Apps Script não configurado. Atualize APPS_SCRIPT_ENDPOINT no topo do arquivo.'); return; }
-
-  submitBtn.disabled = true; submitSpinner.style.display = 'inline'; submitText.textContent = 'Enviando...'; statusMsg.style.display = 'none';
-  progressWrap.style.display = 'block'; progressBar.style.width = '4%';
-
-  const xhr = new XMLHttpRequest(); activeXhr = xhr;
-  xhr.open('POST', APPS_SCRIPT_ENDPOINT, true);
-
-  let fallbackTimer = null; let lastProgress = 4;
-  xhr.upload.onprogress = function(e){
-    if(e.lengthComputable){ const p = Math.round((e.loaded / e.total) * 100); progressBar.style.width = p + '%'; lastProgress = p; if(fallbackTimer) clearInterval(fallbackTimer); }
-    else {
-      if(!fallbackTimer){ fallbackTimer = setInterval(()=> { lastProgress = Math.min(90, lastProgress + Math.random()*4); progressBar.style.width = Math.round(lastProgress) + '%'; }, 400); }
+  if(activeXhr){showToast('Há um envio em andamento. Aguarde.');return;}
+  if(!validateAllFields()){focusFirstInvalid();return;}
+  const fd=new FormData();
+  fd.append('plan',currentThumb?.dataset.plan||'');
+  fd.append('nome',nomeField.value.trim());
+  fd.append('cpf',onlyDigits(cpfField.value));
+  fd.append('nascimento',nascimentoField.value);
+  fd.append('cep',onlyDigits(cepField.value));
+  fd.append('endereco',enderecoField.value.trim());
+  fd.append('vencimento',vencField.value);
+  fd.append('dia_instalacao',diaField.value);
+  fd.append('horario_instalacao',horarioField.value);
+  fd.append('email',emailField.value.trim());
+  fd.append('telefone',telefoneField.value.trim());
+  if(currentFile)fd.append('documento',currentFile,currentFile.name);
+  if(!APPS_SCRIPT_ENDPOINT||APPS_SCRIPT_ENDPOINT==="YOUR_APPS_SCRIPT_WEBAPP_URL"){showToast('Endpoint do servidor não configurado. Atualize APPS_SCRIPT_ENDPOINT.');return;}
+  submitBtn.disabled=true;
+  submitSpinner.style.display='inline';
+  submitText.textContent='Enviando...';
+  statusMsg.style.display='none';
+  progressWrap.style.display='block';
+  progressBar.style.width='4%';
+  const xhr=new XMLHttpRequest();
+  activeXhr=xhr;
+  xhr.open('POST',APPS_SCRIPT_ENDPOINT,true);
+  let fallbackTimer=null;let lastProgress=4;
+  xhr.upload.onprogress=function(e){
+    if(e.lengthComputable){
+      const p=Math.round((e.loaded/e.total)*100);
+      progressBar.style.width=p+'%';
+      lastProgress=p;
+      if(fallbackTimer)clearInterval(fallbackTimer);
+    }else{
+      if(!fallbackTimer){
+        fallbackTimer=setInterval(()=>{
+          lastProgress=Math.min(90,lastProgress+Math.random()*4);
+          progressBar.style.width=Math.round(lastProgress)+'%';
+        },400);
+      }
     }
   };
-
-  xhr.onload = function(){
-    submitBtn.disabled = false; submitSpinner.style.display = 'none'; submitText.textContent = 'Enviar solicitação'; activeXhr = null; if(fallbackTimer) clearInterval(fallbackTimer); progressBar.style.width = '100%';
+  xhr.onload=function(){
+    submitBtn.disabled=false;
+    submitSpinner.style.display='none';
+    submitText.textContent='Enviar solicitação';
+    activeXhr=null;
+    if(fallbackTimer)clearInterval(fallbackTimer);
+    progressBar.style.width='100%';
     try{
-      const res = JSON.parse(xhr.responseText || '{}');
-      if(xhr.status >= 200 && xhr.status < 300 && res.status === 'ok'){
-        openSuccessModal();
-      } else {
-        showToast('Erro no servidor ao processar.');
-        if(res && res.message) showInlineError(statusMsg, res.message); else showInlineError(statusMsg, 'Erro no servidor. Tente novamente.');
-        statusMsg.style.display = 'block';
-      }
-    } catch(err){ showToast('Resposta do servidor inesperada.'); statusMsg.style.display = 'block'; showInlineError(statusMsg, 'Resposta do servidor inesperada.'); }
-    setTimeout(()=> { progressWrap.style.display = 'none'; progressBar.style.width = '0%'; }, 1200);
+      const res=JSON.parse(xhr.responseText||'{}');
+      if(xhr.status>=200&&xhr.status<300&&res.status==='ok'){openSuccessModal();}
+      else{showToast('Erro no servidor ao processar.');if(res&&res.message)showInlineError(statusMsg,res.message);else showInlineError(statusMsg,'Erro no servidor. Tente novamente.');statusMsg.style.display='block';}
+    }catch(err){showToast('Resposta do servidor inesperada.');statusMsg.style.display='block';showInlineError(statusMsg,'Resposta do servidor inesperada.');}
+    setTimeout(()=>{progressWrap.style.display='none';progressBar.style.width='0%';},1200);
   };
-
-  xhr.onerror = function(){ submitBtn.disabled = false; submitSpinner.style.display = 'none'; submitText.textContent = 'Enviar solicitação'; activeXhr = null; if(fallbackTimer) clearInterval(fallbackTimer); showToast('Erro de rede ao enviar. Verifique sua conexão.'); progressWrap.style.display = 'none'; progressBar.style.width = '0%'; };
-  xhr.onabort = function(){ submitBtn.disabled = false; submitSpinner.style.display = 'none'; submitText.textContent = 'Enviar solicitação'; activeXhr = null; if(fallbackTimer) clearInterval(fallbackTimer); showToast('Envio cancelado.'); progressWrap.style.display = 'none'; progressBar.style.width = '0%'; };
-
-  try{ xhr.send(fd); } catch(err){ showToast('Erro ao iniciar envio.'); submitBtn.disabled = false; submitSpinner.style.display = 'none'; submitText.textContent = 'Enviar solicitação'; progressWrap.style.display = 'none'; progressBar.style.width = '0%'; }
+  xhr.onerror=function(){
+    submitBtn.disabled=false;
+    submitSpinner.style.display='none';
+    submitText.textContent='Enviar solicitação';
+    activeXhr=null;
+    if(fallbackTimer)clearInterval(fallbackTimer);
+    showToast('Erro de rede ao enviar. Verifique sua conexão.');
+    progressWrap.style.display='none';
+    progressBar.style.width='0%';
+  };
+  xhr.onabort=function(){
+    submitBtn.disabled=false;
+    submitSpinner.style.display='none';
+    submitText.textContent='Enviar solicitação';
+    activeXhr=null;
+    if(fallbackTimer)clearInterval(fallbackTimer);
+    showToast('Envio cancelado.');
+    progressWrap.style.display='none';
+    progressBar.style.width='0%';
+  };
+  try{xhr.send(fd);}catch(err){showToast('Erro ao iniciar envio.');submitBtn.disabled=false;submitSpinner.style.display='none';submitText.textContent='Enviar solicitação';progressWrap.style.display='none';progressBar.style.width='0%';}
 });
-
-/* ESC to abort upload */
-document.addEventListener('keydown', e=> { if(e.key === 'Escape' && activeXhr){ if(confirm('Cancelar envio em andamento?')) activeXhr.abort(); } });
-
-/* Modal accessibility */
-function openSuccessModal(){ lastFocusedBeforeModal = document.activeElement; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'); if(focusable) focusable.focus(); }
-function closeSuccessModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); if(lastFocusedBeforeModal) lastFocusedBeforeModal.focus(); }
-closeModal.addEventListener('click', closeSuccessModal);
-
-/* print receipt */
-printReceipt.addEventListener('click', ()=>{
-  const plan = selectedPlanInput.value || '—';
-  const nome = nomeField.value.trim(); const cpf = cpfField.value.trim(); const nascimento = nascimentoField.value;
-  const endereco = enderecoField.value.trim(); const cep = cepField.value.trim(); const email = emailField.value.trim();
-  const telefone = telefoneField.value.trim(); const venc = vencField.value; const dia = diaField.value; const horario = horarioField.value;
-  const now = new Date().toLocaleString();
-  const html = `\n    <html><head><title>Comprovante</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}h1{color:#ff6a00} .muted{color:#666;font-size:13px}</style></head><body>\n    <h1>Comprovante de solicitação</h1><div class="muted">Data: ${now}</div><hr/>\n    <div><strong>Plano:</strong> ${plan}</div>\n    <div><strong>Nome:</strong> ${nome}</div>\n    <div><strong>CPF:</strong> ${cpf}</div>\n    <div><strong>Data de nascimento:</strong> ${nascimento}</div>\n    <div><strong>Endereço:</strong> ${endereco}</div>\n    <div><strong>CEP:</strong> ${cep}</div>\n    <div><strong>E-mail:</strong> ${email}</div>\n    <div><strong>Telefone:</strong> ${telefone}</div>\n    <div><strong>Vencimento:</strong> ${venc}</div>\n    <div><strong>Instalação:</strong> ${dia} — ${horario}</div>\n    <hr/><div class="muted">Obrigado por escolher a Age Fibra.</div><div style="margin-top:12px;font-size:12px;color:#888">© João Vieira</div>\n    </body></html>`;
-  const w = window.open('','_blank','width=600,height=800'); w.document.open(); w.document.write(html); w.document.close(); w.focus(); setTimeout(()=> w.print(),400);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&activeXhr){if(confirm('Cancelar envio em andamento?'))activeXhr.abort();}});
+/* MODAL */
+let lastFocusedBeforeModal=null;
+function openSuccessModal(){
+  lastFocusedBeforeModal=document.activeElement;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  const focusable=modal.querySelector('button,[href],input,select,textarea,[tabindex]:not([tabindex=\"-1\"])');
+  if(focusable)focusable.focus();
+}
+function closeSuccessModal(){
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+  if(lastFocusedBeforeModal)lastFocusedBeforeModal.focus();
+}
+closeModal.addEventListener('click',closeSuccessModal);
+/* IMPRESSÃO */
+printReceipt.addEventListener('click',()=>{
+  const plan=selectedPlanInput.value||'—';
+  const nome=nomeField.value.trim();
+  const cpf=cpfField.value.trim();
+  const nascimento=nascimentoField.value;
+  const endereco=enderecoField.value.trim();
+  const cep=cepField.value.trim();
+  const email=emailField.value.trim();
+  const telefone=telefoneField.value.trim();
+  const venc=vencField.value;
+  const dia=diaField.value;
+  const horario=horarioField.value;
+  const now=new Date().toLocaleString();
+  const html=`
+    <html><head><title>Comprovante</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}h1{color:${'#ff6a00'}}.muted{color:#666;font-size:13px}</style></head><body>
+    <h1>Comprovante de solicitação</h1><div class="muted">Data: ${now}</div><hr/>
+    <div><strong>Plano:</strong> ${plan}</div>
+    <div><strong>Nome:</strong> ${nome}</div>
+    <div><strong>CPF:</strong> ${cpf}</div>
+    <div><strong>Data de nascimento:</strong> ${nascimento}</div>
+    <div><strong>Endereço:</strong> ${endereço}</div>
+    <div><strong>CEP:</strong> ${cep}</div>
+    <div><strong>E-mail:</strong> ${email}</div>
+    <div><strong>Telefone:</strong> ${telefone}</div>
+    <div><strong>Vencimento:</strong> ${venc}</div>
+    <div><strong>Instalação:</strong> ${dia} — ${horário}</div>
+    <hr/><div class="muted">Obrigado por escolher a Age Fibra.</div>
+    <div style="margin-top:12px;font-size:12px;color:#888">© 2026 João Vieira</div>
+    </body></html>`;
+  const w=window.open('','_blank','width=600,height=800');
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(),400);
 });
 </script>
 </body>
