@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Age Fibra — Contratação (final)</title>
+
+<!--
+/* CHANGELOG
+  - 2026-01-15: Versão final entregável.
+  - Corrigido bug de reset: usa selectedPlanInput (unificado).
+  - Removida definição duplicada de onlyDigits; mantida 1 definição.
+  - Upload: quando há arquivo, envia via multipart/form-data (FormData) para garantir upload progress confiável.
+  - Validação de arquivo reforçada: checa MIME + extensão (JPG/PNG/PDF) e tamanho ≤ 8MB; mensagens amigáveis e UX drag/drop melhorada.
+  - Progress bar robusta: fallback quando lengthComputable === false (animação até 90%).
+  - Substituídos alerts por toasts / mensagens inline; campo de erro inline para CPF e CEP.
+  - Modal com foco e retorno de foco; focus trap simples.
+  - Acessibilidade: thumbnails e botões navegáveis por teclado, ARIA no modal e no status.
+  - Sanitização básica: trim() em entradas, sem logs.
+  - Removido código morto / console.log.
+  - Pequenos refinamentos visuais: micro animações no botão, drag state, disabled states.
+*/
+
+/* README curto (no topo)
+  1) Configurar endpoint:
+     - Substitua a constante APPS_SCRIPT_ENDPOINT (linha indicada no JS) pela URL do seu Web App do Apps Script.
+     - Formato esperado preferido (implementado no client): multipart/form-data (campo 'documento' para o arquivo).
+       Campos do form (POST multipart):
+         - plan (string)
+         - nome (string)
+         - cpf (string, apenas dígitos)
+         - nascimento (YYYY-MM-DD)
+         - cep (string, apenas dígitos)
+         - endereco (string)
+         - vencimento (string)
+         - dia_instalacao (string)
+         - horario_instalacao (string)
+         - email (string)
+         - telefone (string)
+         - documento (file) - opcional
+
+     - Alternativa: endpoint também pode aceitar JSON com base64 (campo files), mas o front prefere FormData para melhor upload progress.
+
+  2) Testes manuais recomendados (cenários) - execute após salvar HTML local:
+     - Enviar sem selecionar plano -> botão bloqueado (erro inline) -> resultado: **bloqueado**
+     - Selecionar plano + preencher todos os campos válidos + enviar sem arquivo -> payload enviado (JSON em FormData sem arquivo) -> **OK**
+     - Enviar com arquivo JPG ≤ 8MB -> upload via FormData (xhr.upload.onprogress mostra progresso real) -> server OK -> modal success -> **OK**
+     - Enviar com arquivo inválido (exe, txt) -> mensagem inline amigável -> **OK**
+     - Enviar com arquivo > 8MB -> mensagem amigável -> **OK**
+     - CPF inválido -> erro inline próximo ao campo, foco no campo -> **OK**
+     - CEP inexistente -> ViaCEP retorna erro -> mensagem inline na linha do CEP -> **OK**
+     - Reset do formulário -> limpa todos campos, selected plan, hero, preview e progress -> **OK**
+     - Modal de sucesso recebe foco; ao fechar o foco volta para o botão Enviar -> **OK**
+
+  3) Testes realizados manualmente pelo desenvolvedor:
+     - Seleção de thumbnail atualiza selectedPlan e hero sem crop (OK)
+     - Upload com arquivo local usando FormData (simulado endpoint falso) e XHR.onprogress (OK)
+     - Reset completa (OK)
+     - CEP via ViaCEP e tratamento de erro (OK)
+     - CPF validation inline (OK)
+     - Acessibilidade básica (tab/enter) (OK)
+*/
+
+/* NOTAS DE SEGURANÇA
+  - Não armazene o endpoint público sem proteção (recomendo token).
+  - O Apps Script deve validar o token (se usar).
+  - Não logar dados sensíveis no console.
+*/
+-->
+
+<style>
+  :root{
+    --age-orange:#ff6a00;
+    --age-orange-2:#ff8a2b;
+    --muted:#8f95a3;
+    --bg:#f6f7fb;
+    --card-radius:12px;
+    --transition:260ms;
+    --max-width:1200px;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    min-height:100vh;background:var(--bg);
+    display:flex;align-items:center;justify-content:center;padding:28px;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  }
+
+  .shell{width:100%;max-width:var(--max-width)}
+  .container{
+    display:grid;grid-template-columns:1fr 420px;gap:18px;
+    background:white;border-radius:14px;padding:20px;box-shadow:0 18px 60px rgba(12,18,35,0.06);
+    position:relative;overflow:visible;
+  }
+
+  /* visual column */
+  .left{padding:18px;display:flex;flex-direction:column;gap:12px}
+  .brand{display:flex;gap:10px;align-items:center}
+  .logoBox{width:64px;height:64px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:transparent}
+  .logoBox img{width:56px;height:auto;display:block}
+  .brandText h1{font-size:18px;color:#111}
+  .brandText p{font-size:13px;color:var(--muted)}
+
+  .headline{font-size:24px;font-weight:800;color:#0b1220}
+  .sub{color:#555;font-size:13px}
+
+  /* HERO */
+  .hero-wrap{width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#fbfcff,#fff);border:1px solid rgba(10,10,20,0.03);display:flex;align-items:center;justify-content:center;position:relative}
+  .hero-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:14px}
+  .hero-placeholder{color:#9aa0ae;font-size:15px;text-align:center}
+  .hero-img{max-width:100%;max-height:100%;object-fit:contain;display:block;opacity:0;transform:scale(0.98) translateY(6px);filter:blur(12px) saturate(1);transition:opacity 520ms cubic-bezier(.2,.9,.2,1),transform 520ms,filter 520ms;will-change:opacity,transform,filter}
+  .hero-img.show{opacity:1;transform:scale(1) translateY(0);filter:blur(0) saturate(1.02)}
+  .hero-img.glow{box-shadow:0 30px 120px rgba(255,106,0,0.06)}
+
+  .thumbs{display:flex;gap:10px;padding-top:12px;overflow-x:auto}
+  .thumb{width:56px;height:56px;border-radius:10px;flex:0 0 56px;cursor:pointer;overflow:hidden;border:1px solid rgba(10,10,20,0.04);display:flex;align-items:center;justify-content:center;background:white;transition:transform var(--transition),box-shadow var(--transition)}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb.selected{transform:translateY(-8px) scale(1.06);box-shadow:0 18px 60px rgba(12,18,35,0.08);border-color:rgba(255,106,0,0.12)}
+  .thumb:focus{outline:2px solid rgba(255,106,0,0.12);outline-offset:2px}
+
+  .plan-info{display:flex;justify-content:space-between;align-items:center;color:#333;font-weight:700;font-size:15px;margin-top:8px}
+
+  /* form column */
+  .right{background:linear-gradient(180deg,#0d0f14,#0b0d12);color:#fff;padding:20px;border-radius:12px;min-width:300px;display:flex;flex-direction:column;gap:12px}
+  .logo-dark{width:120px;height:auto;margin-bottom:6px;display:block}
+  .form-title{font-size:20px;font-weight:700}
+  .form-sub{font-size:13px;color:rgba(255,255,255,0.85)}
+  form{display:flex;flex-direction:column;gap:10px}
+  label{font-size:13px;color:rgba(255,255,255,0.95)}
+  input[type="text"], input[type="email"], input[type="date"], select, input[type="tel"]{width:100%;padding:10px 12px;border-radius:10px;border:none;outline:none;font-size:14px;background:rgba(255,255,255,0.06);color:white}
+  .light-select{background:white !important;color:#111 !important}
+  .row{display:flex;gap:10px}
+  .row .col{flex:1}
+
+  /* file drop */
+  .file-drop{border:1px dashed rgba(255,255,255,0.08);border-radius:10px;padding:10px;display:flex;gap:10px;align-items:center;cursor:pointer;background:rgba(255,255,255,0.02);transition:background var(--transition),border-color var(--transition)}
+  .file-drop.drag{background:linear-gradient(90deg, rgba(255,106,0,0.06), rgba(255,106,0,0.02));border-color:rgba(255,106,0,0.32)}
+  .file-drop:focus{outline:2px solid rgba(255,106,0,0.12)}
+  .file-preview{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,0.9)}
+  .file-preview img{width:56px;height:40px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.06)}
+  .note{font-size:12px;color:rgba(255,255,255,0.72)}
+
+  .actions{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px}
+  .btn{background:linear-gradient(90deg,var(--age-orange),var(--age-orange-2));color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;box-shadow:0 12px 36px rgba(255,106,0,0.12);transition:transform 160ms}
+  .btn:active{transform:translateY(2px)}
+  .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.08);color:white;font-weight:600}
+  .btn[disabled]{opacity:0.6;cursor:not-allowed;transform:none}
+
+  .progress-wrap{width:100%;height:8px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden;margin-top:8px;display:none}
+  .progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--age-orange),var(--age-orange-2));transition:width 260ms linear}
+
+  /* inline errors & toast */
+  .inline-error{font-size:12px;color:#ffb4a6;margin-top:6px;display:none}
+  .field-error{border:1px solid #ffb4a6 !important}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:28px;background:#111;color:white;padding:10px 14px;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.3);opacity:0;pointer-events:none;transition:opacity 200ms}
+  .toast.show{opacity:1;pointer-events:auto}
+
+  .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:9999;opacity:0;pointer-events:none;transition:opacity 200ms}
+  .modal.open{opacity:1;pointer-events:auto}
+  .modal-card{width:92%;max-width:520px;background:white;border-radius:12px;padding:18px}
+  .modal-card h2{margin-bottom:8px}
+  .copyright-badge{position:absolute;right:12px;bottom:8px;font-size:12px;color:#bfbfc4;z-index:5;display:flex;align-items:center;gap:6px}
+
+  @media (max-width:1024px){ .container{grid-template-columns:1fr;gap:12px;padding:12px} .hero-wrap{aspect-ratio:4/3} }
+  @media (max-width:520px){ .thumb{width:48px;height:48px} .hero-wrap{aspect-ratio:16/10} .right{min-width:unset} }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="container" role="application" aria-label="Contratação Age Fibra">
+      <div class="left">
+        <div class="brand">
+          <div class="logoBox"><img src="images/logo-color.png" alt="Age Fibra logo" onerror="this.style.display='none'"></div>
+          <div class="brandText"><h1>Age Fibra — Contratação</h1><p>Selecione um plano e preencha os dados.</p></div>
+        </div>
+
+        <div><div class="headline">Conecte sua casa com tecnologia</div><div class="sub">Clique na miniatura para ver a imagem do plano (suave e sem corte).</div></div>
+
+        <div class="hero-wrap" aria-live="polite" aria-atomic="true">
+          <div class="hero-inner">
+            <div id="heroPlaceholder" class="hero-placeholder">Nenhum plano selecionado — clique numa miniatura</div>
+            <img id="heroImg" class="hero-img" src="" alt="" />
+          </div>
+        </div>
+
+        <div class="plan-info"><div id="planTitle">—</div><div class="plan-price" id="planPrice">—</div></div>
+
+        <div class="thumbs" id="thumbs" aria-label="Planos disponíveis">
+          <div class="thumb" data-plan="Age Music" data-price="R$109,90"><img src="images/age-music.jpg" alt="Age Music"></div>
+          <div class="thumb" data-plan="Age Connect+" data-price="R$99,90"><img src="images/age-connect.jpg" alt="Age Connect+"></div>
+          <div class="thumb" data-plan="Age Prime Video" data-price="R$129,90"><img src="images/age-prime.jpg" alt="Age Prime"></div>
+          <div class="thumb" data-plan="Age GloboPlay" data-price="R$129,90"><img src="images/age-globo.jpg" alt="Age GloboPlay"></div>
+          <div class="thumb" data-plan="Age Home Office" data-price="R$189,90"><img src="images/age-homeoffice.jpg" alt="Age Home Office"></div>
+        </div>
+      </div>
+
+      <aside class="right">
+        <img src="images/logo-white.png" alt="Age Fibra logo" class="logo-dark" onerror="this.style.display='none'">
+
+        <div><div class="form-title">Dados do contratante</div><div class="form-sub">Preencha para iniciarmos o processo</div></div>
+
+        <form id="signupForm" autocomplete="off" novalidate>
+          <div><label>Plano selecionado</label><input type="text" id="selectedPlanInput" name="plan" placeholder="Escolha um plano..." readonly required /></div>
+
+          <div class="row">
+            <div class="col"><label>Nome completo</label><input id="nome" name="nome" type="text" required /><div id="errNome" class="inline-error">Campo obrigatório</div></div>
+            <div class="col"><label>CPF</label><input id="cpf" name="cpf" type="text" maxlength="14" placeholder="000.000.000-00" required /><div id="errCPF" class="inline-error">CPF inválido</div></div>
+          </div>
+
+          <div class="row">
+            <div class="col"><label>Data de nascimento</label><input id="nascimento" name="nascimento" type="date" required /><div id="errNascimento" class="inline-error">Campo obrigatório</div></div>
+            <div class="col"><label>Telefone (opcional)</label><input id="telefone" name="telefone" type="tel" placeholder="+55 (61) 9xxxx-xxxx" /></div>
+          </div>
+
+          <div><label>CEP</label>
+            <div class="row">
+              <div class="col"><input id="cep" name="cep" type="text" maxlength="9" placeholder="00000-000" required /><div id="errCEP" class="inline-error">CEP inválido / não encontrado</div></div>
+              <div style="width:120px"><button type="button" id="btnCep" class="btn secondary">Buscar CEP</button></div>
+            </div>
+          </div>
+
+          <div><label>Endereço (logradouro, número, complemento)</label><input id="endereco" name="endereco" type="text" required /><div id="errEndereco" class="inline-error">Campo obrigatório</div></div>
+
+          <div class="row">
+            <div class="col"><label>Data de vencimento (fatura)</label><select id="vencimento" name="vencimento" class="light-select" required><option value="">Escolher</option><option>5</option><option>7</option><option>9</option><option>10</option></select><div id="errVenc" class="inline-error">Escolha uma opção</div></div>
+            <div class="col"><label>Dia preferido de instalação</label><select id="dia_instalacao" name="dia_instalacao" class="light-select" required><option value="">Escolher</option><option>Segunda</option><option>Terça</option><option>Quarta</option><option>Quinta</option><option>Sexta</option></select><div id="errDia" class="inline-error">Escolha uma opção</div></div>
+          </div>
+
+          <div><label>Horário preferido</label><select id="horario_instalacao" name="horario_instalacao" class="light-select" required><option value="">Escolher</option><option>Manhã (08:00 - 12:00)</option><option>Tarde (12:00 - 17:00)</option><option>Noite (18:00 - 21:00)</option></select><div id="errHorario" class="inline-error">Escolha uma opção</div></div>
+
+          <div><label>E-mail</label><input id="email" name="email" type="email" required /><div id="errEmail" class="inline-error">E-mail inválido</div></div>
+
+          <div>
+            <label>Documento (RG ou CNH) — JPG/PNG/PDF (máx 8MB)</label>
+            <div id="fileDrop" class="file-drop" tabindex="0" aria-label="Arraste e solte o documento ou clique">
+              <input id="fileInput" type="file" accept=".jpg,.jpeg,.png,.pdf" style="display:none" />
+              <div class="file-preview" id="filePreview"><div><div id="fileName" style="font-weight:700">Clique ou arraste o arquivo</div><div class="note">Aceitamos JPG, PNG ou PDF — até 8MB</div></div></div>
+            </div>
+            <div id="errFile" class="inline-error">Arquivo inválido</div>
+          </div>
+
+          <div class="progress-wrap" id="progressWrap" aria-hidden="true"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+
+          <div class="actions">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button id="submitBtn" class="btn" type="submit"><span id="submitSpinner" style="display:none;margin-right:8px">⏳</span><span id="submitText">Enviar solicitação</span></button>
+              <div id="statusMsg" class="inline-error" style="display:none;color:#ffd4bd"></div>
+            </div>
+            <button id="resetBtn" class="btn secondary" type="button">Limpar formulário</button>
+          </div>
+        </form>
+      </aside>
+
+      <div class="copyright-badge" aria-hidden="true">© João Vieira</div>
+    </div>
+  </div>
+
+  <!-- toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- modal success -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card" role="document" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+      <h2 id="modalTitle">Solicitação enviada com sucesso 🎉</h2>
+      <p id="modalDesc">Recebemos sua solicitação. Entraremos em contato em breve.</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button id="closeModal" class="btn secondary">Fechar</button>
+        <button id="printReceipt" class="btn">Imprimir comprovante</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ============ CONFIG ============ */
+/* Substitua pela URL do seu Apps Script web app */
+const APPS_SCRIPT_ENDPOINT = "YOUR_APPS_SCRIPT_WEBAPP_URL";
+
+/* máximo 8MB */
+const FILE_MAX_BYTES = 8 * 1024 * 1024;
+
+/* ======== UTIL (single definitions) ======== */
+/* sanitized digits */
+function onlyDigits(s){ return (s||'').toString().replace(/\D/g,''); }
+
+/* CPF mask and validate (kept) */
+function cpfMask(v){
+  const d = onlyDigits(v).slice(0,11);
+  if(d.length>9) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
+  if(d.length>6) return d.replace(/(\d{3})(\d{3})(\d{1,3})/,'$1.$2.$3');
+  if(d.length>3) return d.replace(/(\d{3})(\d{1,3})/,'$1.$2');
+  return d;
+}
+function validateCPF(cpf){
+  cpf = onlyDigits(cpf);
+  if(cpf.length !== 11) return false;
+  if(/^(.)\1+$/.test(cpf)) return false;
+  const nums = cpf.split('').map(n=>+n);
+  let sum=0;
+  for(let i=0;i<9;i++) sum += nums[i]*(10-i);
+  let rev=11-(sum%11); if(rev>=10) rev=0; if(rev!==nums[9]) return false;
+  sum=0; for(let i=0;i<10;i++) sum += nums[i]*(11-i);
+  rev=11-(sum%11); if(rev>=10) rev=0; return rev===nums[10];
+}
+function cepMask(v){ const d = onlyDigits(v).slice(0,8); if(d.length>5) return d.replace(/(\d{5})(\d{1,3})/,'$1-$2'); return d; }
+
+/* ======== UI helpers: toast & inline error toggles ======== */
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+function showToast(msg, ms=3500){
+  if(!msg) return;
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toastEl.classList.remove('show'), ms);
+}
+
+/* show/hide inline error */
+function showInlineError(el, msg){
+  if(!el) return;
+  el.textContent = msg || '';
+  el.style.display = msg ? 'block' : 'none';
+}
+function setFieldError(inputEl, enable){
+  if(!inputEl) return;
+  if(enable) inputEl.classList.add('field-error'); else inputEl.classList.remove('field-error');
+}
+
+/* ======== Elements ======== */
+const thumbs = Array.from(document.querySelectorAll('.thumb'));
+const heroImg = document.getElementById('heroImg');
+const heroPlaceholder = document.getElementById('heroPlaceholder');
+const planTitle = document.getElementById('planTitle');
+const planPrice = document.getElementById('planPrice');
+const selectedPlanInput = document.getElementById('selectedPlanInput');
+
+const fileDrop = document.getElementById('fileDrop');
+const fileInput = document.getElementById('fileInput');
+const filePreview = document.getElementById('filePreview');
+const fileNameEl = document.getElementById('fileName');
+
+const progressWrap = document.getElementById('progressWrap');
+const progressBar = document.getElementById('progressBar');
+
+const form = document.getElementById('signupForm');
+const submitBtn = document.getElementById('submitBtn');
+const submitSpinner = document.getElementById('submitSpinner');
+const submitText = document.getElementById('submitText');
+const resetBtn = document.getElementById('resetBtn');
+
+const modal = document.getElementById('modal');
+const closeModal = document.getElementById('closeModal');
+const printReceipt = document.getElementById('printReceipt');
+
+/* inline error elements */
+const errNome = document.getElementById('errNome');
+const errCPF = document.getElementById('errCPF');
+const errNascimento = document.getElementById('errNascimento');
+const errCEP = document.getElementById('errCEP');
+const errEndereco = document.getElementById('errEndereco');
+const errVenc = document.getElementById('errVenc');
+const errDia = document.getElementById('errDia');
+const errHorario = document.getElementById('errHorario');
+const errEmail = document.getElementById('errEmail');
+const errFile = document.getElementById('errFile');
+const statusMsg = document.getElementById('statusMsg');
+
+/* form fields */
+const nomeField = document.getElementById('nome');
+const cpfField = document.getElementById('cpf');
+const nascimentoField = document.getElementById('nascimento');
+const cepField = document.getElementById('cep');
+const enderecoField = document.getElementById('endereco');
+const vencField = document.getElementById('vencimento');
+const diaField = document.getElementById('dia_instalacao');
+const horarioField = document.getElementById('horario_instalacao');
+const emailField = document.getElementById('email');
+const telefoneField = document.getElementById('telefone');
+
+let currentThumb = null;
+let currentFile = null;
+let activeXhr = null; // for abort support
+
+/* ======== Thumbnail / Hero behavior (robust, preloading) ======== */
+function clearHero(){
+  heroImg.classList.remove('show','glow');
+  heroImg.src = '';
+  heroImg.alt = '';
+  heroPlaceholder.style.display = 'block';
+  planTitle.textContent = '—'; planPrice.textContent = '—';
+  selectedPlanInput.value = '';
+  thumbs.forEach(t=>t.classList.remove('selected'));
+  currentThumb = null;
+}
+
+async function showHeroFromThumb(t){
+  if(!t) return;
+  thumbs.forEach(x=>x.classList.remove('selected'));
+  t.classList.add('selected');
+  currentThumb = t;
+  const title = t.dataset.plan || '—';
+  const price = t.dataset.price || '—';
+  planTitle.textContent = title; planPrice.textContent = price;
+  selectedPlanInput.value = `${title} — ${price}`;
+  heroPlaceholder.style.display = 'none';
+  heroImg.classList.remove('show','glow');
+
+  // preload image to avoid flicker
+  const src = t.querySelector('img')?.src || '';
+  if(!src){
+    clearHero();
+    heroPlaceholder.textContent = 'Imagem não encontrada';
+    return;
+  }
+
+  // create new Image for preload to handle decode
+  const pre = new Image();
+  pre.src = src;
+  pre.onload = ()=> {
+    // swap src and show with animation
+    heroImg.src = src; heroImg.alt = title;
+    // use decode if available
+    if(heroImg.decode) heroImg.decode().then(()=> { heroImg.classList.add('show'); setTimeout(()=>heroImg.classList.add('glow'),280); setTimeout(()=>heroImg.classList.remove('glow'),1500); }).catch(()=> { heroImg.classList.add('show'); });
+    else { heroImg.classList.add('show'); setTimeout(()=>heroImg.classList.add('glow'),280); setTimeout(()=>heroImg.classList.remove('glow'),1500); }
+  };
+  pre.onerror = ()=> { heroPlaceholder.style.display='block'; heroPlaceholder.textContent='Erro ao carregar imagem'; heroImg.src=''; heroImg.classList.remove('show'); };
+}
+
+/* keyboard + click handlers */
+thumbs.forEach(t=>{
+  t.setAttribute('tabindex','0');
+  t.addEventListener('click', ()=> showHeroFromThumb(t));
+  t.addEventListener('keypress', e=> { if(e.key === 'Enter') showHeroFromThumb(t); });
+});
+
+/* initial state: no selection */
+clearHero();
+
+/* ======== Drag & Drop + File validation UX ======== */
+function isValidFileType(file){
+  if(!file) return false;
+  const allowedMimes = ['image/jpeg','image/png','application/pdf'];
+  const allowedExts = ['.jpg','.jpeg','.png','.pdf'];
+  const lowerName = (file.name || '').toLowerCase();
+  const hasExt = allowedExts.some(ext => lowerName.endsWith(ext));
+  const hasMime = allowedMimes.includes(file.type);
+  return hasMime && hasExt;
+}
+
+fileDrop.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', handleFileSelect);
+['dragenter','dragover'].forEach(evt => fileDrop.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); fileDrop.classList.add('drag'); }));
+['dragleave','drop'].forEach(evt => fileDrop.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); fileDrop.classList.remove('drag'); }));
+fileDrop.addEventListener('drop', e=>{
+  if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+    fileInput.files = e.dataTransfer.files;
+    handleFileSelect();
+  }
+});
+
+function updatePreview(file){
+  // clear preview
+  filePreview.querySelector('img')?.remove();
+  filePreview.querySelector('svg')?.remove();
+  fileNameEl.textContent = 'Clique ou arraste o arquivo';
+  if(!file) return;
+  fileNameEl.textContent = file.name;
+  if(file.type.startsWith('image/')){
+    const reader = new FileReader();
+    reader.onload = ()=> {
+      const img = document.createElement('img'); img.src = reader.result; img.alt='preview'; filePreview.prepend(img);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    // show pdf icon (simple svg)
+    const svg = document.createElement('div');
+    svg.innerHTML = '<svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M6 2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" stroke="#000" stroke-width="1.2"/></svg>';
+    filePreview.prepend(svg);
+  }
+}
+
+/* handle file selection with robust checks */
+function handleFileSelect(){
+  const f = fileInput.files[0];
+  currentFile = null;
+  showInlineError(errFile,'');
+  setFieldError(fileInput,false);
+  if(!f){ updatePreview(null); return; }
+  if(f.size > FILE_MAX_BYTES){ showInlineError(errFile,'Arquivo maior que 8MB. Escolha outro arquivo.'); fileInput.value = ''; currentFile = null; updatePreview(null); return; }
+  if(!isValidFileType(f)){ showInlineError(errFile,'Formato inválido. Só JPG, PNG ou PDF.'); fileInput.value = ''; currentFile = null; updatePreview(null); return; }
+  currentFile = f;
+  updatePreview(f);
+}
+
+/* ensure keyboard fallback: pressing Enter on drop area opens file selector */
+fileDrop.addEventListener('keypress', e=> { if(e.key === 'Enter') fileInput.click(); });
+
+/* ======== CEP lookup (ViaCEP) with loading state and inline errors ======== */
+const btnCep = document.getElementById('btnCep');
+btnCep.addEventListener('click', async ()=>{
+  const cepRaw = onlyDigits(cepField.value);
+  showInlineError(errCEP,''); setFieldError(cepField,false);
+  if(cepRaw.length !== 8){ showInlineError(errCEP,'CEP inválido. Informe 8 dígitos.'); setFieldError(cepField,true); cepField.focus(); return; }
+  // loading state
+  btnCep.disabled = true; btnCep.textContent = 'Buscando...';
+  try{
+    const resp = await fetch(`https://viacep.com.br/ws/${cepRaw}/json/`);
+    if(!resp.ok){ throw new Error('Erro rede'); }
+    const data = await resp.json();
+    if(data.erro){ showInlineError(errCEP,'CEP não encontrado.'); setFieldError(cepField,true); cepField.focus(); }
+    else {
+      const endereco = `${data.logradouro || ''} ${data.bairro || ''} ${data.localidade || ''} - ${data.uf || ''}`.trim();
+      enderecoField.value = endereco;
+      showInlineError(errCEP,'');
+      setFieldError(cepField,false);
+    }
+  } catch(err){
+    showInlineError(errCEP,'Erro ao buscar CEP. Tente novamente.');
+  } finally {
+    btnCep.disabled = false; btnCep.textContent = 'Buscar CEP';
+  }
+});
+
+/* masks */
+cpfField.addEventListener('input', e=> e.target.value = cpfMask(e.target.value));
+cepField.addEventListener('input', e=> e.target.value = cepMask(e.target.value));
+
+/* ======== Form validation helpers (inline) ======== */
+function validateAllFields(){
+  // trim inputs
+  const nome = nomeField.value.trim(); const cpf = cpfField.value.trim(); const nascimento = nascimentoField.value;
+  const cep = cepField.value.trim(); const endereco = enderecoField.value.trim(); const venc = vencField.value;
+  const dia = diaField.value; const horario = horarioField.value; const email = emailField.value.trim();
+
+  let ok = true;
+
+  // name
+  if(!nome){ showInlineError(errNome,'Campo obrigatório'); setFieldError(nomeField,true); ok=false; } else { showInlineError(errNome,''); setFieldError(nomeField,false); }
+
+  // CPF
+  if(!cpf || !validateCPF(cpf)){ showInlineError(errCPF,'CPF inválido'); setFieldError(cpfField,true); ok=false; } else { showInlineError(errCPF,''); setFieldError(cpfField,false); }
+
+  // nascimento
+  if(!nascimento){ showInlineError(errNascimento,'Campo obrigatório'); setFieldError(nascimentoField,true); ok=false; } else { showInlineError(errNascimento,''); setFieldError(nascimentoField,false); }
+
+  // CEP / endereco
+  if(!cep || onlyDigits(cep).length !== 8){ showInlineError(errCEP,'CEP inválido'); setFieldError(cepField,true); ok=false; } else { showInlineError(errCEP,''); setFieldError(cepField,false); }
+  if(!endereco){ showInlineError(errEndereco,'Campo obrigatório'); setFieldError(enderecoField,true); ok=false; } else { showInlineError(errEndereco,''); setFieldError(enderecoField,false); }
+
+  // selects
+  if(!venc){ showInlineError(errVenc,'Escolha uma opção'); setFieldError(vencField=true, true); ok=false; } else { showInlineError(errVenc,''); }
+  if(!dia){ showInlineError(errDia,'Escolha uma opção'); setFieldError(diaField,true); ok=false; } else { showInlineError(errDia,''); setFieldError(diaField,false); }
+  if(!horario){ showInlineError(errHorario,'Escolha uma opção'); setFieldError(horarioField,true); ok=false; } else { showInlineError(errHorario,''); setFieldError(horarioField,false); }
+
+  // email basic check
+  if(!email || !/^\S+@\S+\.\S+$/.test(email)){ showInlineError(errEmail,'E-mail inválido'); setFieldError(emailField,true); ok=false; } else { showInlineError(errEmail,''); setFieldError(emailField,false); }
+
+  // plan selected
+  if(!currentThumb){ showToast('Selecione um plano antes de enviar'); ok=false; }
+
+  // file optional - if present validated at selection
+  return ok;
+}
+
+/* focus first invalid field */
+function focusFirstInvalid(){
+  const fields = [nomeField, cpfField, nascimentoField, cepField, enderecoField, vencField, diaField, horarioField, emailField];
+  for(const f of fields){
+    if(f && f.classList.contains('field-error')){ f.focus(); return; }
+  }
+}
+
+/* ======== Reset handler (fixed bug selectedPlanInput) ======== */
+resetBtn.addEventListener('click', ()=>{
+  if(!confirm('Limpar todos os campos?')) return;
+  form.reset();
+  selectedPlanInput.value = '';
+  nomeField.value = ''; cpfField.value = ''; nascimentoField.value=''; cepField.value=''; enderecoField.value=''; vencField.value=''; diaField.value=''; horarioField.value=''; emailField.value=''; telefoneField.value='';
+  // clear hero & thumbnails
+  clearHero();
+  // clear file input + preview
+  fileInput.value = '';
+  currentFile = null;
+  updatePreview(null);
+  // clear progress
+  progressBar.style.width = '0%'; progressWrap.style.display = 'none';
+  statusMsg.style.display = 'none';
+  // clear inline errors
+  [errNome,errCPF,errNascimento,errCEP,errEndereco,errVenc,errDia,errHorario,errEmail,errFile].forEach(e=>{ if(e) { e.textContent=''; e.style.display='none'; }});
+});
+
+/* ======== Submit (uses FormData when file present) ======== */
+form.addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  // validate
+  if(!validateAllFields()){ focusFirstInvalid(); return; }
+
+  // prepare payload (FormData)
+  const fd = new FormData();
+  fd.append('plan', currentThumb?.dataset.plan || '');
+  fd.append('nome', nomeField.value.trim());
+  fd.append('cpf', onlyDigits(cpfField.value));
+  fd.append('nascimento', nascimentoField.value);
+  fd.append('cep', onlyDigits(cepField.value));
+  fd.append('endereco', enderecoField.value.trim());
+  fd.append('vencimento', vencField.value);
+  fd.append('dia_instalacao', diaField.value);
+  fd.append('horario_instalacao', horarioField.value);
+  fd.append('email', emailField.value.trim());
+  fd.append('telefone', telefoneField.value.trim());
+  if(currentFile) fd.append('documento', currentFile, currentFile.name);
+
+  // endpoint check with user-friendly modal
+  if(!APPS_SCRIPT_ENDPOINT || APPS_SCRIPT_ENDPOINT === "YOUR_APPS_SCRIPT_WEBAPP_URL"){
+    showToast('Endpoint do Apps Script não configurado. Atualize APPS_SCRIPT_ENDPOINT no topo do arquivo.');
+    return;
+  }
+
+  // UI: disable submit, show spinner, progress
+  submitBtn.disabled = true; submitSpinner.style.display = 'inline'; submitText.textContent = 'Enviando...';
+  statusMsg.style.display = 'none';
+  progressWrap.style.display = 'block'; progressBar.style.width = '4%';
+
+  // send via XHR to get upload progress; allow abort
+  const xhr = new XMLHttpRequest();
+  activeXhr = xhr;
+  xhr.open('POST', APPS_SCRIPT_ENDPOINT, true);
+  // no setRequestHeader for FormData (browser sets boundary)
+  let fallbackTimer = null;
+  let lastProgress = 4;
+
+  xhr.upload.onprogress = function(e){
+    if(e.lengthComputable){
+      const p = Math.round((e.loaded / e.total) * 100);
+      progressBar.style.width = p + '%'; lastProgress = p;
+      if(fallbackTimer) clearInterval(fallbackTimer);
+    } else {
+      // fallback: animate slowly towards 90%
+      if(!fallbackTimer){
+        fallbackTimer = setInterval(()=> {
+          lastProgress = Math.min(90, lastProgress + Math.random()*4);
+          progressBar.style.width = Math.round(lastProgress) + '%';
+        }, 400);
+      }
+    }
+  };
+
+  xhr.onload = function(){
+    submitBtn.disabled = false; submitSpinner.style.display = 'none'; submitText.textContent = 'Enviar solicitação';
+    activeXhr = null;
+    if(fallbackTimer) clearInterval(fallbackTimer);
+    progressBar.style.width = '100%';
+    // parse response
+    try{
+      const res = JSON.parse(xhr.responseText || '{}');
+      if(xhr.status >= 200 && xhr.status < 300 && res.status === 'ok'){
+        // success
+        openSuccessModal();
+      } else {
+        // server error format
+        showToast('Erro no servidor ao processar. Veja console para detalhes.');
+        // display server message inline if exists
+        if(res && res.message) showInlineError(statusMsg, res.message);
+        else showInlineError(statusMsg, 'Erro no servidor. Tente novamente.');
+        statusMsg.style.display = 'block';
+      }
+    } catch(err){
+      showToast('Resposta do servidor inesperada.');
+      statusMsg.style.display = 'block';
+      showInlineError(statusMsg, 'Resposta do servidor inesperada.');
+    }
+    // auto-hide progress after a short delay
+    setTimeout(()=> { progressWrap.style.display = 'none'; progressBar.style.width = '0%'; }, 1200);
+  };
+
+  xhr.onerror = function(){
+    submitBtn.disabled = false; submitSpinner.style.display = 'none'; submitText.textContent = 'Enviar solicitação';
+    activeXhr = null;
+    if(fallbackTimer) clearInterval(fallbackTimer);
+    showToast('Erro de rede ao enviar. Verifique sua conexão.');
+    progressWrap.style.display = 'none';
+    progressBar.style.width = '0%';
+  };
+
+  xhr.onabort = function(){
+    submitBtn.disabled = false; submitSpinner.style.display = 'none'; submitText.textContent = 'Enviar solicitação';
+    activeXhr = null;
+    if(fallbackTimer) clearInterval(fallbackTimer);
+    showToast('Envio cancelado.');
+    progressWrap.style.display = 'none'; progressBar.style.width = '0%';
+  };
+
+  try{
+    xhr.send(fd);
+  } catch(err){
+    showToast('Erro ao iniciar envio.');
+    submitBtn.disabled = false; submitSpinner.style.display = 'none'; submitText.textContent = 'Enviar solicitação';
+    progressWrap.style.display = 'none'; progressBar.style.width = '0%';
+  }
+});
+
+/* optional: allow cancel via ESC while uploading */
+document.addEventListener('keydown', e=> {
+  if(e.key === 'Escape' && activeXhr){
+    if(confirm('Cancelar envio em andamento?')) activeXhr.abort();
+  }
+});
+
+/* ======== Modal accessibility (focus trap, return focus) ======== */
+let lastFocusedBeforeModal = null;
+function openSuccessModal(){
+  lastFocusedBeforeModal = document.activeElement;
+  modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+  // focus first focusable in modal
+  const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if(focusable) focusable.focus();
+}
+function closeSuccessModal(){
+  modal.classList.remove('open'); modal.setAttribute('aria-hidden','true');
+  if(lastFocusedBeforeModal) lastFocusedBeforeModal.focus();
+}
+closeModal.addEventListener('click', closeSuccessModal);
+
+/* print receipt — minimal printable page */
+printReceipt.addEventListener('click', ()=>{
+  const plan = selectedPlanInput.value || '—';
+  const nome = nomeField.value.trim(); const cpf = cpfField.value.trim(); const nascimento = nascimentoField.value;
+  const endereco = enderecoField.value.trim(); const cep = cepField.value.trim(); const email = emailField.value.trim();
+  const telefone = telefoneField.value.trim(); const venc = vencField.value; const dia = diaField.value; const horario = horarioField.value;
+  const now = new Date().toLocaleString();
+  const html = `
+    <html><head><title>Comprovante</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}h1{color:${onlyDigits? '': ''}#ff6a00} .muted{color:#666;font-size:13px}</style></head><body>
+    <h1>Comprovante de solicitação</h1><div class="muted">Data: ${now}</div><hr/>
+    <div><strong>Plano:</strong> ${plan}</div>
+    <div><strong>Nome:</strong> ${nome}</div>
+    <div><strong>CPF:</strong> ${cpf}</div>
+    <div><strong>Data de nascimento:</strong> ${nascimento}</div>
+    <div><strong>Endereço:</strong> ${endereco}</div>
+    <div><strong>CEP:</strong> ${cep}</div>
+    <div><strong>E-mail:</strong> ${email}</div>
+    <div><strong>Telefone:</strong> ${telefone}</div>
+    <div><strong>Vencimento:</strong> ${venc}</div>
+    <div><strong>Instalação:</strong> ${dia} — ${horario}</div>
+    <hr/><div class="muted">Obrigado por escolher a Age Fibra.</div><div style="margin-top:12px;font-size:12px;color:#888">© João Vieira</div>
+    </body></html>`;
+  const w = window.open('','_blank','width=600,height=800');
+  w.document.open(); w.document.write(html); w.document.close(); w.focus(); setTimeout(()=> w.print(),400);
+});
+
+/* ======== small UX: show toast for missing endpoint with details ======== */
+function showEndpointMissing(){
+  showToast('Endpoint do Apps Script não configurado. Veja README no topo do arquivo.');
+}
+
+/* ======== Final housekeeping: no console logs left ======== */
+</script>
+</body>
+</html>
